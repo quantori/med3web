@@ -73,18 +73,23 @@
     "webpack-dev-server": "^2.4.4"
   },
   "dependencies": {
+    "babylonjs": "^3.2.0",
     "bootstrap": "^3.3.7",
     "c3": "^0.4.17",
+    "cannon": "^0.6.2",
     "d3": "^3.5.17",
+    "earcut": "^2.1.3",
     "font-awesome": "^4.7.0",
     "jquery": "^3.2.1",
     "jspdf": "^1.3.5",
     "jspdf-autotable": "^2.3.2",
     "nouislider": "^11.1.0",
+    "oimo": "^1.0.9",
     "preprocessify": "^1.0.1",
     "spin": "0.0.1",
     "sweetalert": "^2.0.8",
     "three": "^0.94.0",
+    "typescript": "^3.0.3",
     "wnumb": "^1.1.0"
   },
   "eslintConfig": {

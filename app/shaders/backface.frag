@@ -3,11 +3,10 @@
 */
 
 precision highp float;
-precision highp int;
 
 varying vec3 Pos;
 
 //
 void main() {
-  gl_FragColor = vec4(Pos, 1.0);
+  gl_FragColor = vec4(Pos + 0.5, 1.0);
 }
