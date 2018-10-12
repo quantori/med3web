@@ -164,30 +164,30 @@ vec3 CalcLighting(vec3 iter, vec3 dir)
   float l, r;
   l = tex3D(iter - dx);
   r = tex3D(iter + dx);
-  /* #if MaskFlag == 1
+  #if MaskFlag == 1
   {
     l = l * tex3DMask(iter - dx);
     r = r * tex3DMask(iter + dx);
   }
-  #endif */
+  #endif
   N.x = r - l;
   l = tex3D(iter - dy);
   r = tex3D(iter + dy);
-  /* #if MaskFlag == 1
+  #if MaskFlag == 1
   {
     l = l * tex3DMask(iter - dy);
     r = r * tex3DMask(iter + dy);
   }
-  #endif */
+  #endif
   N.y = r - l;
   l = tex3D(iter - dz);
   r = tex3D(iter + dz);
-  /* #if MaskFlag == 1
+  #if MaskFlag == 1
   {
     l = l * tex3DMask(iter - dz);
     r = r * tex3DMask(iter + dz);
   }
-  #endif */
+  #endif
   N.z = r - l;
   N = normalize(N);
   // Calculate the density of the material in the vicinity of the isosurface
@@ -275,7 +275,7 @@ vec3 CorrectionRoi(vec3 left, vec3 right, float threshold) {
 /**
 * Direct volume render
 */
-/*
+
 vec4 VolumeRender(vec3 start, vec3 dir, vec3 back) {
     const int MAX_I = 1000;
     const float BRIGHTNESS_SCALE = 5.0;
@@ -342,7 +342,7 @@ vec4 VolumeRender(vec3 start, vec3 dir, vec3 back) {
     acc.rgb = BRIGHTNESS_SCALE * brightness3D * sumCol + (1.0 - sumAlpha) * surfaceLighting;
     return acc;
 }
-*/
+
 
 
 /**
@@ -480,7 +480,6 @@ vec4 FullVolumeRender(vec3 start, vec3 dir, vec3 back) {
 /**
 * Rendering the maximum intensity along the beam
 */
-/*
 vec4 MipRender(vec3 start, vec3 dir, vec3 back) {
     const int MAX_I = 1000;
     vec4 acc = vec4(0.0, 0.0, 0.0, 2.0);
@@ -502,12 +501,11 @@ vec4 MipRender(vec3 start, vec3 dir, vec3 back) {
     } // for i
     acc.rgb = maxVol * t_function2min.rgb;
     return acc;
-} */
+}
 
 /**
 * Finding the point of intersection of a ray with an isosurface
 */
-/*
 vec4 Isosurface(vec3 start, vec3 dir, vec3 back, float threshold) {
     const int MAX_I = 1000;
     vec3 iterator = start;
@@ -539,6 +537,7 @@ vec4 Isosurface(vec3 start, vec3 dir, vec3 back, float threshold) {
     }
     return acc;
   }
+  /*
 vec4 IsosurfaceRoi(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize) {
     const int MAX_I = 1000;
     vec3 iterator = start;
@@ -609,13 +608,13 @@ void main() {
   minIso = min(minIso, iso3);
   minIso = min(minIso, iso4);
   float delta = DELTA1;
-  /*
+  
   #if isoRenderFlag==1
   {
     delta = DELTA2;
   }
   #endif
-  */
+  
  /*
   if (minIso.a > 1.9)
   {
@@ -633,9 +632,9 @@ void main() {
   }
  
 
-  /*
+  
   // Direct volume render
- #if isoRenderFlag==0
+  #if isoRenderFlag==0
   {
      float vol = tex3D(start.xyz);
      if (vol > t_function2min.a)
@@ -647,6 +646,7 @@ void main() {
      return;
   }
   #endif
+  
   // Direct isosurface render
    #if isoRenderFlag==1
   {
@@ -667,16 +667,16 @@ void main() {
     gl_FragColor = acc;
     return;
   }
-  #endif */
+  #endif 
  // Direct full volume render
-  //#if isoRenderFlag==3
+  #if isoRenderFlag==3
   {
      acc.rgb = FullVolumeRender(start.xyz + max(0., minIso.a - 0. / 128.)*dir, dir, back).rgb;
      acc.a = 1.0;
      gl_FragColor = acc;
      return;
   }
-  //#endif 
+  #endif 
   
   // Direct volume render with ROI
   /* #if isoRenderFlag==4
@@ -721,11 +721,11 @@ void main() {
   }
   #endif */
   // Render of maximum intensity
-  /* #if isoRenderFlag == 2
+  #if isoRenderFlag == 2
   {
     acc.rgb = MipRender(start.xyz, dir, back).rgb;
     gl_FragColor = acc;
     return;
   } 
-  #endif */
+  #endif 
 }

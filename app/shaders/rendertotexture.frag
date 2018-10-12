@@ -467,7 +467,7 @@ vec3 CalcNormal(vec3 iter)
 /**
 * Direct volume render
 */
-/*
+
 vec4 VolumeRender(vec3 start, vec3 dir, vec3 back) {
     const int MAX_I = 1000;
     const float BRIGHTNESS_SCALE = 5.0;
@@ -532,7 +532,7 @@ vec4 VolumeRender(vec3 start, vec3 dir, vec3 back) {
     acc.rgb = BRIGHTNESS_SCALE * brightness3D * sumCol + (1.0 - sumAlpha) * surfaceLighting;
     return acc;
 }
-*/
+
 
 
 /**
@@ -681,11 +681,11 @@ vec4 MipRender(vec3 start, vec3 dir, vec3 back) {
     {
         iterator = iterator + step;
         vol = tex3D(iterator);
-        /* #if MaskFlag == 1
+        #if MaskFlag == 1
         {
           vol = vol * tex3DMask(iterator);
         }
-        #endif */
+        #endif
         finish = distance(iterator, back) - StepSize;
         if (finish < 0.0)
             break;
@@ -713,12 +713,12 @@ vec4 SkipZero(vec3 start, vec3 dir, vec3 back, float StepSize) {
     for (int i = 0; i < MAX_I; i++) {
       iterator = iterator + step;
       vol = tex3D(iterator);
-      /* #if MaskFlag == 1
+      #if MaskFlag == 1
       {
         vol = vol * tex3DMask(iterator);
       }
-     #endif
-	 */
+      #endif
+	 
       valTF = texture2D(texTF, vec2(vol, 0.0), 0.0).a;
       if (count <= 0 || valTF > 0.0)
         break;
@@ -737,7 +737,7 @@ vec4 SkipZero(vec3 start, vec3 dir, vec3 back, float StepSize) {
 /**
 * Finding the point of intersection of a ray with an isosurface
 */
-/*
+
 vec4 Isosurface(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize) {
     const int MAX_I = 1000;
     vec3 iterator = start;
@@ -771,7 +771,8 @@ vec4 Isosurface(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize
     }
     return acc;
   }
-vec4 IsosurfaceRoi(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize) {
+/*
+  vec4 IsosurfaceRoi(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize) {
     const int MAX_I = 1000;
     vec3 iterator = start;
     vec4 acc = vec4(0.0, 0.0, 0.0, 2.0);
@@ -819,7 +820,7 @@ void main() {
 //  const float ISO_VOLUME_STEP_SIZE = 0.0035;
   //Direct volume render
 
-  /* #if isoRenderFlag == 0
+  #if isoRenderFlag == 0
   {
     float vol = tex3D(start.xyz);
     if (vol > t_function2min.a)
@@ -834,9 +835,9 @@ void main() {
     return;
   }
   #endif
-  */
+  
   //Direct isosurface render
-  /*
+  
   #if isoRenderFlag == 1
   {
     acc = Isosurface(start.xyz, dir, back, isoThreshold, stepSize.b);
@@ -853,9 +854,9 @@ void main() {
     return;
   }
   #endif
-  */
+  
  // Direct full volume render
-  //#if isoRenderFlag == 3
+  #if isoRenderFlag == 3
   {
     acc = SkipZero(start.xyz, dir, back, stepSize.b);
     if (acc.a < 1.9)
@@ -863,7 +864,7 @@ void main() {
     gl_FragColor = acc;
     return;
   }
-  //#endif
+  #endif
   // Direct volume render with ROI
   /* #if isoRenderFlag == 4
   {
@@ -881,7 +882,7 @@ void main() {
     return;
   }
   #endif
-
+  
   //Direct isosurface render
   #if isoRenderFlag == 5
   {
@@ -912,6 +913,7 @@ void main() {
     return;
   }
   #endif
+  */
   //Render of maximum intensity
   #if isoRenderFlag == 2
   {
@@ -922,5 +924,5 @@ void main() {
     return;
   }
   #endif
-  */
+  
  }
