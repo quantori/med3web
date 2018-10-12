@@ -589,10 +589,10 @@ void main() {
   }
   vec3 dir = normalize(back - start.xyz);
   //acc.rgb = VolumeRender(start.xyz, dir, back).rgb;
-  acc.rgb = FullVolumeRender(start.xyz, dir, back).rgb;
+  /*acc.rgb = FullVolumeRender(start.xyz, dir, back).rgb;
   acc.a = 1.0;
   gl_FragColor = acc;//vec4(1.0, 0.0, 0.0, 1.0);
-  return;
+  return;*/
 
   // Read texels adjacent to the pixel
   vec2 tc1 = tc.xy;
