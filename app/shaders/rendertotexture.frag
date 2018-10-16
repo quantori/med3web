@@ -36,7 +36,12 @@ varying vec4 screenpos;
 
 float tex3D(vec3 tc)
 {
-  return texture(texVolume, tc).r;
+  return texture(texVolume, tc).a;
+}
+
+vec4 tex3DRoi(vec3 tc)
+{
+  return texture(texVolume, tc);
 }
 
 /*
@@ -212,7 +217,7 @@ vec4 tex3DRoi(vec3 vecCur) {
   vec4 colorSlice1 = texture2D(texVolume, clamp(texCoordSlice1 * tCX, vec2(0.0, 0.0), vec2(1.0, 1.0)), 0.0);
   vec4 colorSlice2 = texture2D(texVolume, clamp(texCoordSlice2 * tCX, vec2(0.0, 0.0), vec2(1.0, 1.0)), 0.0);
   return mix(colorSlice1, colorSlice2, zRatio);
-}
+}*/
 vec3 CalcNormalRoi(vec3 iter)
 {
   float d = 1.0 / texSize;
@@ -223,7 +228,7 @@ vec3 CalcNormalRoi(vec3 iter)
   N.z = tex3DRoi(iter + dz).a - tex3DRoi(iter - dz).a;
   N = normalize(N);
   return N;
-}*/
+}
 
 /*****************AMBIENT OCCLUSION*********************************/
 mat3 rotationMatrix(vec3 axis, float angle)
@@ -313,30 +318,30 @@ vec3 CalcLighting(vec3 iter, vec3 dir)
   float l, r;
   l = tex3D(iter - dx);
   r = tex3D(iter + dx);
-  /* #if MaskFlag == 1
+  #if MaskFlag == 1
   {
     l = l * tex3DMask(iter - dx);
     r = r * tex3DMask(iter + dx);
   }
-  #endif */
+  #endif
   N.x = r - l;
   l = tex3D(iter - dy);
   r = tex3D(iter + dy);
-  /* #if MaskFlag == 1
+  #if MaskFlag == 1
   {
     l = l * tex3DMask(iter - dy);
     r = r * tex3DMask(iter + dy);
   }
-  #endif */
+  #endif
   N.y = r - l;
   l = tex3D(iter - dz);
   r = tex3D(iter + dz);
-  /* #if MaskFlag == 1
+  #if MaskFlag == 1
   {
     l = l * tex3DMask(iter - dz);
     r = r * tex3DMask(iter + dz);
   }
-  #endif */
+  #endif
   N.z = r - l;
   N = normalize(N);
   // Calculate the density of the material in the vicinity of the isosurface
@@ -392,13 +397,13 @@ vec3 Correction(vec3 left, vec3 right, float threshold) {
     {
         iterator = 0.5*(left + right);
         vol = tex3D(iterator);
-		/*
+		
         #if MaskFlag == 1
         {
           vol = vol * tex3DMask(iterator);
         }
         #endif
-		*/
+		
         if (vol > threshold)
             right = iterator;
         else
@@ -407,7 +412,7 @@ vec3 Correction(vec3 left, vec3 right, float threshold) {
     iterator = 0.5*(left + right);
     return iterator;
 }
-/*
+
 vec3 CorrectionRoi(vec3 left, vec3 right, float threshold) {
     vec3 iterator;
     float vol;
@@ -422,7 +427,7 @@ vec3 CorrectionRoi(vec3 left, vec3 right, float threshold) {
     }
     iterator = 0.5*(left + right);
     return iterator;
-}*/
+}
 
 /**
 * Refinement of the coordinate of the isosurface
@@ -434,11 +439,11 @@ vec3 CorrectionZero(vec3 left, vec3 right) {
     {
         iterator = 0.5*(left + right);
         vol = tex3D(iterator);
-        /* #if MaskFlag == 1
+        #if MaskFlag == 1
         {
           vol = vol * tex3DMask(iterator);
         }
-        #endif */
+        #endif
         // valTF = texture2D(texTF, vec2(vol, 0.0), 0.0).a;
         if (valTF > 0.0)
             right = iterator;
@@ -538,7 +543,7 @@ vec4 VolumeRender(vec3 start, vec3 dir, vec3 back) {
 /**
 * ROI Direct volume render
 */
-/*
+
 vec4 RoiVolumeRender(vec3 start, vec3 dir, vec3 back) {
     const int MAX_I = 1000;
     const float BRIGHTNESS_SCALE = 1.0;
@@ -607,7 +612,7 @@ vec4 RoiVolumeRender(vec3 start, vec3 dir, vec3 back) {
     }
     acc.rgb = BRIGHTNESS_SCALE * sumCol + (1.0 - sumAlpha) * surfaceLighting;
     return acc;
-}*/
+}
 
 /**
 * Full direct volume render
@@ -630,26 +635,26 @@ vec4 FullVolumeRender(vec3 start, vec3 dir, vec3 back) {
             break;
         iterator = iterator + step;
         vol = tex3D(iterator);
-		/*
+		
         #if MaskFlag == 1
         {
           vol = vol * tex3DMask(iterator);
         }
         #endif
-		*/
+		
         valTF = texture2D(texTF, vec2(vol, 0.0), 0.0);
         if (valTF.a > 0.0)
         {
             // If the transfer function is nonzero, the integration step is halved
             // First step
             float vol1 = tex3D(iterator - 0.5 * step);
-			/*
+			
             #if MaskFlag == 1
             {
               vol1 = vol1 * tex3DMask(iterator - 0.5 * step);
             }
             #endif
-			*/
+			
             // Transfer function - isosceles triangle
             vec4 valTF1 = texture2D(texTF, vec2(vol1, 0.0), 0.0);
             lighting = 0.5 * max(0.0, dot(CalcNormal(iterator), -lightDir)) + 0.5;
@@ -771,7 +776,7 @@ vec4 Isosurface(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize
     }
     return acc;
   }
-/*
+
   vec4 IsosurfaceRoi(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize) {
     const int MAX_I = 1000;
     vec3 iterator = start;
@@ -800,12 +805,10 @@ vec4 Isosurface(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize
     }
     return acc;
   }
-  */
+  
 
 void main() {
   vec4 acc = vec4(0., 0., 0., 1.);
-//    gl_FragColor = acc;
-//    return;
   // To increase the points of the beginning and end of the ray and its direction
   vec2 tc = screenpos.xy / screenpos.w * 0.5 + 0.5;
   vec4 backTexel = texture2D(texBF, tc, 0.0);
@@ -866,7 +869,7 @@ void main() {
   }
   #endif
   // Direct volume render with ROI
-  /* #if isoRenderFlag == 4
+  #if isoRenderFlag == 4
   {
     float vol = tex3DRoi(start.xyz).a;
     if (vol > 0.75)
@@ -913,7 +916,7 @@ void main() {
     return;
   }
   #endif
-  */
+  
   //Render of maximum intensity
   #if isoRenderFlag == 2
   {

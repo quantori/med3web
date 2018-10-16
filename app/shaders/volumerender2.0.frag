@@ -29,7 +29,12 @@ varying vec4 screenpos;
 
 float tex3D(vec3 tc)
 {
-  return texture(texVolume, tc).r;
+  return texture(texVolume, tc).a;
+}
+
+vec4 tex3DRoi(vec3 tc)
+{
+  return texture(texVolume, tc);
 }
 
 /*******************************************************************/
@@ -48,7 +53,7 @@ vec3 CalcNormal(vec3 iter)
   N = normalize(N);
   return N;
 }
-/*
+
 vec3 CalcNormalRoi(vec3 iter)
 {
   float d = 1.0 / texSize;
@@ -59,7 +64,7 @@ vec3 CalcNormalRoi(vec3 iter)
   N.z = tex3DRoi(iter + dz).a - tex3DRoi(iter - dz).a;
   N = normalize(N);
   return N;
-} */
+}
 
 
 /*****************AMBIENT OCCLUSION*********************************/
@@ -255,7 +260,7 @@ vec3 Correction(vec3 left, vec3 right, float threshold) {
     iterator = 0.5*(left + right);
     return iterator;
 }
-/*
+
 vec3 CorrectionRoi(vec3 left, vec3 right, float threshold) {
     vec3 iterator;
     float vol;
@@ -270,7 +275,7 @@ vec3 CorrectionRoi(vec3 left, vec3 right, float threshold) {
     }
     iterator = 0.5*(left + right);
     return iterator;
-} */
+}
 
 /**
 * Direct volume render
@@ -348,7 +353,7 @@ vec4 VolumeRender(vec3 start, vec3 dir, vec3 back) {
 /**
 * ROI Direct volume render
 */
-/*
+
 vec4 RoiVolumeRender(vec3 start, vec3 dir, vec3 back) {
     const int MAX_I = 1000;
     const float BRIGHTNESS_SCALE = 1.0;
@@ -417,7 +422,7 @@ vec4 RoiVolumeRender(vec3 start, vec3 dir, vec3 back) {
     }
     acc.rgb = BRIGHTNESS_SCALE * sumCol + (1.0 - sumAlpha) * surfaceLighting;
     return acc;
-}*/
+}
 
 /**
 * Full direct volume render
@@ -441,22 +446,22 @@ vec4 FullVolumeRender(vec3 start, vec3 dir, vec3 back) {
             break;
         iterator = iterator + step;
         vol = tex3D(iterator);
-        /* #if MaskFlag == 1
+        #if MaskFlag == 1
         {
           vol = vol * tex3DMask(iterator);
         }
-        #endif */
+        #endif
         valTF = texture2D(texTF, vec2(vol, 0.0), 0.0);
         if (valTF.a > 0.0)
         {
             // If the transfer function is nonzero, the integration step is halved
             // First step
             float vol1 = tex3D(iterator - 0.5 * step);
-            /* #if MaskFlag == 1
+            #if MaskFlag == 1
             {
               vol1 = vol1 * tex3DMask(iterator - 0.5 * step);
             }
-            #endif */
+            #endif
             // Transfer function - isosceles triangle
             vec4 valTF1 = texture2D(texTF, vec2(vol1, 0.0), 0.0);
             lighting = 0.5 * max(0.0, dot(CalcNormal(iterator), -lightDir)) + 0.5;
@@ -537,7 +542,7 @@ vec4 Isosurface(vec3 start, vec3 dir, vec3 back, float threshold) {
     }
     return acc;
   }
-  /*
+
 vec4 IsosurfaceRoi(vec3 start, vec3 dir, vec3 back, float threshold, float StepSize) {
     const int MAX_I = 1000;
     vec3 iterator = start;
@@ -566,7 +571,6 @@ vec4 IsosurfaceRoi(vec3 start, vec3 dir, vec3 back, float threshold, float StepS
     }
     return acc;
   }
-  */
 
 
 
@@ -576,8 +580,6 @@ void main() {
   vec4 acc = vec4(0.0, 0.0, 0.0, 0.0);
   // To increase the points of the beginning and end of the ray and its direction
   vec2 tc = screenpos.xy / screenpos.w * 0.5 + 0.5;
-//    gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
-//    return;
   vec4 backTexel = texture2D(texBF, tc, 0.0);
   vec3 back = backTexel.xyz;
   vec4 start = texture2D(texFF, tc, 0.0);
@@ -679,7 +681,7 @@ void main() {
   #endif 
   
   // Direct volume render with ROI
-  /* #if isoRenderFlag==4
+  #if isoRenderFlag==4
   {
      vec4 vol = tex3DRoi(start.xyz);
      if (vol.a > 0.75)
@@ -690,10 +692,10 @@ void main() {
      gl_FragColor = acc;
      return;
   }
-  #endif */
+  #endif
 
   //Direct isosurface render with ROI
-  /* #if isoRenderFlag == 5
+  #if isoRenderFlag == 5
   {
     float Threshold = 0.3 * isoThreshold + 0.5;
     acc = IsosurfaceRoi(start.xyz + max(0., minIso.a - 1. / 128.)*dir, dir, back, Threshold, stepSize.b);
@@ -719,7 +721,7 @@ void main() {
     gl_FragColor = acc;
     return;
   }
-  #endif */
+  #endif
   // Render of maximum intensity
   #if isoRenderFlag == 2
   {
