@@ -36,7 +36,7 @@ varying vec4 screenpos;
 
 float tex3D(vec3 tc)
 {
-  return texture(texVolume, tc).a;
+  return texture(texVolume, tc).r;
 }
 
 vec4 tex3DRoi(vec3 tc)

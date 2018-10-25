@@ -23,7 +23,7 @@ float tex3D(vec3 tc)
 #if renderRoiMap == 1
   return texture(texVolume, tc).r;
 #else
-  return texture(texVolume, tc).a;
+  return texture(texVolume, tc).r;
 #endif
 }
 
