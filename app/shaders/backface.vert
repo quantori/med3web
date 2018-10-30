@@ -20,5 +20,5 @@ varying vec3 Pos;
 
 void main(void) {
     gl_Position = worldViewProjection * vec4(position, 1.0);
-    Pos = position;
+    Pos = normal;
 }

@@ -9,6 +9,6 @@ varying vec4 screenpos;
 
 void main(void) {
   screenpos = worldViewProjection * vec4(position, 1.0);
-  Pos = position;
+  Pos = normal;
   gl_Position =  screenpos;
 }
