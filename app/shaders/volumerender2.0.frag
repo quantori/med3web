@@ -202,7 +202,6 @@ vec3 CalcLighting(vec3 iter, vec3 dir)
   // The resulting color depends on the longevity of the material in the surface of the isosurface
   return  (0.5*(brightness3D + 1.5)*(DIFFUSE * dif + AMBIENT) + SPEC * specular) * sumCol;// * tex3DvolAO(iter);
 }
-
 /*
 vec3 CalcLightingAO(vec3 iter, vec3 dir, float isoThreshold)
 {
@@ -525,12 +524,13 @@ vec4 Isosurface(vec3 start, vec3 dir, vec3 back, float threshold) {
     for (int i = 0; i < MAX_I; i++) {
       iterator = iterator + step;
       vol = tex3D(iterator);
-      #if MaskFlag == 1
+/*  
+    #if MaskFlag == 1
       {
         vol = vol * tex3DMask(iterator);
       }
       #endif
-      if (count <= 0 || vol > threshold)
+*/      if (count <= 0 || vol > threshold)
         break;
       count--;
     }
@@ -583,12 +583,13 @@ void main() {
   vec4 backTexel = texture2D(texBF, tc, 0.0);
   vec3 back = backTexel.xyz;
   vec4 start = texture2D(texFF, tc, 0.0);
-  if (backTexel.a < 0.5)
+ /* if (backTexel.a < 0.5)
   {
     gl_FragColor = acc;
     return;
   }
-  vec3 dir = normalize(back - start.xyz);
+*/ 
+ vec3 dir = normalize(back - start.xyz);
   //acc.rgb = VolumeRender(start.xyz, dir, back).rgb;
   /*acc.rgb = FullVolumeRender(start.xyz, dir, back).rgb;
   acc.a = 1.0;
@@ -617,14 +618,15 @@ void main() {
   }
   #endif
   
- /*
+/*
   if (minIso.a > 1.9)
   {
     // The neighboring texels do not contain an isosurface
     discard;
     return;
   }
-  */
+*/
+  /*
   if (length(iso1.rgb - iso2.rgb) < delta && length(iso1.rgb - iso3.rgb) < delta && length(iso1.rgb - iso4.rgb) < delta)
   {
     // The color of the pixel is calculated by bilinear interpolation of colors of neighboring texels
@@ -632,9 +634,7 @@ void main() {
     gl_FragColor = acc;
     return;
   }
- 
-
-  
+ */
   // Direct volume render
   #if isoRenderFlag==0
   {
@@ -642,17 +642,18 @@ void main() {
      if (vol > t_function2min.a)
         acc.rgb = 0.75*vol * t_function2min.rgb;
      else
-        acc.rgb = VolumeRender(start.xyz + max(0., minIso.a - 0. / 128.)*dir, dir, back).rgb;
+//        acc.rgb = VolumeRender(start.xyz + max(0., minIso.a - 0. / 128.)*dir, dir, back).rgb;
+        acc.rgb = VolumeRender(start.xyz, dir, back).rgb;
      acc.a = 1.0;
      gl_FragColor = acc;
      return;
   }
   #endif
-  
-  // Direct isosurface render
-   #if isoRenderFlag==1
+ // Direct isosurface render
+  #if isoRenderFlag==1
   {
-    acc = Isosurface(start.xyz + max(0., minIso.a - 1. / 128.)*dir, dir, back, isoThreshold);
+//    acc = Isosurface(start.xyz + max(0., minIso.a - 1. / 128.)*dir, dir, back, isoThreshold);
+    acc = Isosurface(start.xyz, dir, back, isoThreshold);
     if (acc.a < 1.9)
     {
         float vol = tex3D(start.xyz);
@@ -666,10 +667,12 @@ void main() {
 //            acc.rgb = CalcLightingAO(acc.rgb, dir, isoThreshold);
             acc.rgb = CalcLighting(acc.rgb, dir);
     }
+    acc.a = 1.0;
     gl_FragColor = acc;
     return;
   }
   #endif 
+ 
  // Direct full volume render
   #if isoRenderFlag==3
   {
@@ -730,4 +733,4 @@ void main() {
     return;
   } 
   #endif 
-}
+ }
