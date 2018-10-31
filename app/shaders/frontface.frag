@@ -23,9 +23,9 @@ void main() {
   vec3 pos = Pos;
   vec4 vOut = vec4(Pos, 1.0);
   //If the ray intersects the clipping plane, then calculate the intersection point
-  /*if (dot(Pos, PlaneZ.xyz) + PlaneZ.w < 0.0)
+  if (dot(Pos, PlaneZ.xyz) + PlaneZ.w < 0.0)
     vOut = isectRay(normalize(back - pos), pos, length(back - pos));
   if (dot(back - pos, back - vOut.xyz) < 0.0) 
-    vOut = vec4(back, 0.0);*/
+    vOut = vec4(back, 0.0);
   gl_FragColor = vOut;
 }
