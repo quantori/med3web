@@ -2,10 +2,15 @@
 * Vertex shader for render clip plane to FF texture
 */
 
-uniform mat4 MVP;
+// Attributes
+attribute vec3 position;
+attribute vec3 normal;
+
+//Uniforms
+// uniform mat4 worldViewProjection;
 varying vec3 Pos;
-attribute vec3 uvw;
-void main() {
-  Pos = uvw;
-  gl_Position = vec4(position, 1.0);
+
+void main(void) {
+    gl_Position = vec4(position.xy * 2.0, 1.0, 1.0);
+    Pos = normal;
 }

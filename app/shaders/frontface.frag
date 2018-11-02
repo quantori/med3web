@@ -1,7 +1,7 @@
 /**
 * Pixel shader for render front face of BBOX
 */
-precision mediump float;
+precision highp float;
 precision mediump int; 
 varying vec3 Pos;
 uniform sampler2D texBF;
