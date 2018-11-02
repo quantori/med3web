@@ -626,7 +626,7 @@ void main() {
     return;
   }
 */
-  /*
+  
   if (length(iso1.rgb - iso2.rgb) < delta && length(iso1.rgb - iso3.rgb) < delta && length(iso1.rgb - iso4.rgb) < delta)
   {
     // The color of the pixel is calculated by bilinear interpolation of colors of neighboring texels
@@ -634,7 +634,7 @@ void main() {
     gl_FragColor = acc;
     return;
   }
- */
+ 
   // Direct volume render
   #if isoRenderFlag==0
   {
@@ -660,6 +660,7 @@ void main() {
         if (vol > t_function2min.a)
         {
             acc.rgb = 0.75*vol*t_function2min.rgb;
+            acc.a = 1.0;
             gl_FragColor = acc;
             return;
         }
