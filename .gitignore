@@ -35,3 +35,4 @@ docs/auto/
 .idea/
 
 
+package-lock.json
