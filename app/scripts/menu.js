@@ -589,11 +589,14 @@ export default class Menu {
   }
 
   updateROIList() {
+    // TODO: need to impleetmt correctly with BabylonJS
+    /*
     const btnGroup = $('#med3web-choose-roi-body .btn-roi-group');
     btnGroup.empty();
     const palette = new RoiPalette().getPalette();
     const length = palette.length;
-    for (let i = 0; i < length; ++i) {
+    let i;
+    for (i = 0; i < length; i++) {
       const item = palette[i];
       const elem = createElement('label', {
         class: 'btn btn-default btn-roi',
@@ -629,7 +632,9 @@ export default class Menu {
       if (item.isBrain) {
         $(elem).click();
       }
-    }
+    } // for (i) all palete entries
+    console.log('menu. updateROIList end');
+    */
   }
 
   /** Initialize navigation bar */

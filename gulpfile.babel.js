@@ -135,7 +135,7 @@ gulp.task('html', ['styles', 'scripts'], () => {
     .pipe($.if(/\.html$/, $.htmlmin({
       collapseWhitespace: true,
       minifyCSS: true,
-      minifyJS: { compress: { drop_console: true } },
+      minifyJS: { compress: { drop_console: !NEED_CONSOLE_LOGS_BUILD } },
       processConditionalComments: true,
       removeComments: true,
       removeEmptyAttributes: true,
