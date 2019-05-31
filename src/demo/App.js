@@ -50,6 +50,10 @@ class App extends React.Component {
   }
   onApi(api) {
     this.logObject('onApi with api = ', api)
+    // api.authorize();
+    if (api.error) {
+      this.logObject('auth failed with error = ', api.error);
+    }
     const jsxOnApi = <p>
       onApi invoked
     </p>;
@@ -62,14 +66,22 @@ class App extends React.Component {
     if (!NEED_GOOGLE_API) {
       return <UiApp />;
     }
-    const googleApiKey = 'AIzaSyARCrLFJZcsKaadtyGK9mgzRBZqkopTR1s';
-    const idGoogle = 'shaped-plateau-242308.apps.googleusercontent.com';
+    const CLIENT_ID = 'clientId.apps.googleusercontent.com'
+    const googleApiKey = 'apikey'
+    // const SERVICE_ACCOUNT_JSON = './My Project 90848-dcbe1e05fb8a.json'
+    const discoveryDocs = 'https://healthcare.googleapis.com/$discovery/rest?labels=CHC_BETA&version=v1beta1' 
+    // #############################################
+
+    // const CLOUD_HEALTHCARE_API_BASE = 'https://healthcare.googleapis.com/v1beta1/projects/';
+    const SCOPE_HEALTH = 'https://www.googleapis.com/auth/cloud-healthcare';
+    const SCOPE_CLOUD = 'https://www.googleapis.com/auth/cloud-platform';
 
     const arrDocs = [
-      'Med3Web is the first and only dicom medical data web 2d/3d viewer'
+      discoveryDocs
     ];
     const arrScopes = [
-      'med3webApp'
+      SCOPE_HEALTH,
+      SCOPE_CLOUD
     ];
 
     const jsxRender = <div>
@@ -77,7 +89,7 @@ class App extends React.Component {
       <p>
         Test google api...
       </p>
-      <GoogleApi clientId={idGoogle} apiKey={googleApiKey} discoveryDocs={arrDocs} scopes={arrScopes} children={this.onApi} >
+      <GoogleApi clientId={CLIENT_ID} apiKey={googleApiKey} discoveryDocs={arrDocs} scopes={arrScopes} children={this.onApi} >
       </GoogleApi>
       
     </div>;
