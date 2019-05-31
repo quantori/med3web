@@ -62,8 +62,8 @@ class App extends React.Component {
     if (!NEED_GOOGLE_API) {
       return <UiApp />;
     }
-    const googleApiKey = 'AIzaSyARCrLFJZcsKaadtyGK9mgzRBZqkopTR1s';
-    const idGoogle = 'shaped-plateau-242308.apps.googleusercontent.com';
+    const googleApiKey = 'SoemKeyCodeHere';
+    const idGoogle = 'some_apps_id.apps.googleusercontent.com';
 
     const arrDocs = [
       'Med3Web is the first and only dicom medical data web 2d/3d viewer'
