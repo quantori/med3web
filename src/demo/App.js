@@ -48,12 +48,49 @@ class App extends React.Component {
     }
     console.log(`${strTitle}\n${str}`);
   }
+  listDatasets(client) {
+    // const cloudRegion = 'us-central1';
+    // const projectId = 'adjective-noun-123';
+    const projectId = 'wide-journey-237913';
+    const cloudRegion = 'europe-west2';
+    const dicomDataset = 'TestDicom2';
+    // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
+    // For future dicomStores request
+    const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}`;
+  
+    const request = { parent: parentName };
+    // await ? are all of these sub-fields available? - should be for the cloud-healthcare scope
+    client.projects.locations.datasets.dicomStores
+    // client.projects.locations.datasets
+      .list(request)
+      .then(results => {
+        console.log(`Dicomstores in ${dicomDataset} :`, results.data);
+        // console.log('Datasets:', results.data);//data format? array of strings?
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  }
   onApi(api) {
     this.logObject('onApi with api = ', api)
-    // api.authorize();
-    if (api.error) {
-      this.logObject('auth failed with error = ', api.error);
+    if (api.isSignedIn === false) {
+      api.authorize().then(() => {
+        if (api.error) {
+          this.logObject('auth failed with error = ', api.error);
+        }
+        else {
+          this.listDatasets(api.client);
+        }
+      });
+      
     }
+    // api.authorize();
+    // if (api.error) {
+    //   this.logObject('auth failed with error = ', api.error);
+    // }
+    // Retrieve some dataset info for test purposes
+    //this.listDatasets(api.client);
+    // output html component
     const jsxOnApi = <p>
       onApi invoked
     </p>;
@@ -66,8 +103,8 @@ class App extends React.Component {
     if (!NEED_GOOGLE_API) {
       return <UiApp />;
     }
-    const CLIENT_ID = 'clientId.apps.googleusercontent.com'
-    const googleApiKey = 'apikey'
+    const googleApiKey = 'AIzaSyDFEE_nKXzp0tTZBIZiHpjw8E7m1EUcy6Y'
+    const CLIENT_ID = '2955718871-q4onol31phj03ndpq344dkbd0qs8b51n.apps.googleusercontent.com'
     // const SERVICE_ACCOUNT_JSON = './My Project 90848-dcbe1e05fb8a.json'
     const discoveryDocs = 'https://healthcare.googleapis.com/$discovery/rest?labels=CHC_BETA&version=v1beta1' 
     // #############################################
