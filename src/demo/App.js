@@ -60,7 +60,7 @@ class App extends React.Component {
   
     const request = { parent: parentName };
     // await ? are all of these sub-fields available? - should be for the cloud-healthcare scope
-    client.projects.locations.datasets.dicomStores
+    client.healthcare.projects.locations.datasets.dicomStores
     // client.projects.locations.datasets
       .list(request)
       .then(results => {
@@ -72,24 +72,25 @@ class App extends React.Component {
       });
   }
   onApi(api) {
-    this.logObject('onApi with api = ', api)
-    if (api.isSignedIn === false) {
-      api.authorize().then(() => {
-        if (api.error) {
-          this.logObject('auth failed with error = ', api.error);
-        }
-        else {
-          this.listDatasets(api.client);
-        }
-      });
-      
-    }
+    this.logObject('onApi with api = ', api);
+    
+    // var clientLoaded = function() {
+    //   if (api.error !== null) {
+    //     this.logObject('auth failed with error = ', api.error);
+    //   }
+    //   else {
+    //     this.listDatasets(api.client);
+    //   }
+    // }
+    //api.signedIn.listen(clientLoaded);
     // api.authorize();
     // if (api.error) {
     //   this.logObject('auth failed with error = ', api.error);
     // }
     // Retrieve some dataset info for test purposes
-    //this.listDatasets(api.client);
+    if (api.client !== null) {
+      this.listDatasets(api.client);
+    }
     // output html component
     const jsxOnApi = <p>
       onApi invoked
