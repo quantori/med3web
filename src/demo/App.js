@@ -54,45 +54,58 @@ class App extends React.Component {
     const projectId = 'wide-journey-237913';
     const cloudRegion = 'europe-west2';
     const dicomDataset = 'TestDicom1';
-    const parentName = `projects/${projectId}/locations/${cloudRegion}`;
+    const dicomStore = 'TestDicomStorage1';
+    // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
     // For future dicomStores request
-    //const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}`;
+    const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
+    const dicomWebPath = 'studies';
   
-    const request = { parent: parentName };
-    // await ? are all of these sub-fields available? - should be for the cloud-healthcare scope
-    // client.healthcare.projects.locations.datasets.dicomStores
-    client.healthcare.projects.locations.datasets
-      .list(request)
+    // const options = {
+    //   url: dicomWebPath,
+    //   headers: {
+    //     'Content-Type': 'application/dicom+json; charset=utf-8',
+    //   },
+    //   method: 'GET',
+    // };
+  
+    //request(options)
+    const request = { 
+      parent: parentName,
+      dicomWebPath: dicomWebPath 
+    };
+    client.healthcare.projects.locations.datasets.dicomStores.
+      searchForStudies(request)
       .then(results => {
-        // console.log(`Dicomstores in ${dicomDataset} :`, results.data);
-        // console.log('Datasets:', results.data);//data format? array of strings?
-        this.logObject('Datasets = ', results);
+        console.log('Request successful:\n');
+        //console.log(results);
+        this.logObject('Studies = ', results);
       })
       .catch(err => {
         console.error(err);
       });
+  
+    // const request = { parent: parentName };
+    // // await ? are all of these sub-fields available? - should be for the cloud-healthcare scope
+    // // client.healthcare.projects.locations.datasets.dicomStores
+    // client.healthcare.projects.locations.datasets
+    //   .list(request)
+    //   .then(results => {
+    //     // console.log(`Dicomstores in ${dicomDataset} :`, results.data);
+    //     // console.log('Datasets:', results.data);//data format? array of strings?
+    //     this.logObject('Datasets = ', results);
+    //   })
+    //   .catch(err => {
+    //     console.error(err);
+    //   });
   }
   onApi(api) {
     this.logObject('onApi with api = ', api);
     
-    // var clientLoaded = function() {
-    //   if (api.error !== null) {
-    //     this.logObject('auth failed with error = ', api.error);
-    //   }
-    //   else {
-    //     this.listDatasets(api.client);
-    //   }
-    // }
-    //api.signedIn.listen(clientLoaded);
-    // 
-    // if (api.error) {
-    //   this.logObject('auth failed with error = ', api.error);
-    // }
-    // Retrieve some dataset info for test purposes
+    // Authorize via google account
     if (api.client !== null && api.signedIn === false) {
       api.authorize();
     }
-
+    // When next render comes, if both client and api ready - get dicoms from cloud
     if (api.client !== null && api.signedIn) {
       this.listDatasets(api.client);
     }
@@ -118,7 +131,7 @@ class App extends React.Component {
 
     // const CLOUD_HEALTHCARE_API_BASE = 'https://healthcare.googleapis.com/v1beta1/projects/';
     const SCOPE_HEALTH = 'https://www.googleapis.com/auth/cloud-healthcare';
-    const SCOPE_CLOUD = 'https://www.googleapis.com/auth/cloud-platform';
+    // const SCOPE_CLOUD = 'https://www.googleapis.com/auth/cloud-platform';
 
     const arrDocs = [
       discoveryDocs
