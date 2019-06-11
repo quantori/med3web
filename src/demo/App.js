@@ -59,6 +59,7 @@ class App extends React.Component {
     // For future dicomStores request
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
     const dicomWebPath = 'studies';
+    const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
   
     // const options = {
     //   url: dicomWebPath,
@@ -71,16 +72,16 @@ class App extends React.Component {
     //request(options)
     const request = { 
       parent: parentName,
-      dicomWebPath: dicomWebPath 
+      dicomWebPath: studyName 
     };
-    client.healthcare.projects.locations.datasets.dicomStores.
-      searchForStudies(request)
+    client.healthcare.projects.locations.datasets.dicomStores.studies.retrieveStudy(request)
+      //searchForStudies(request)      
       .then(results => {
         console.log('Request successful:\n');
         //console.log(results);
         this.logObject('Studies = ', results);
-        this.logObject('Headers = ', results.headers);
-        console.log(results.body.toString());
+        //this.logObject('Headers = ', results.headers);
+        //console.log(results.body.toString());
       })
       .catch(err => {
         console.error(err);
