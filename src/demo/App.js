@@ -65,7 +65,8 @@ class App extends React.Component {
       .list(request)
       .then(results => {
         // console.log(`Dicomstores in ${dicomDataset} :`, results.data);
-        console.log('Datasets:', results.data);//data format? array of strings?
+        // console.log('Datasets:', results.data);//data format? array of strings?
+        this.logObject('Datasets = ', results);
       })
       .catch(err => {
         console.error(err);
