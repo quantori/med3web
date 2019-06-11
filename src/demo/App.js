@@ -48,7 +48,7 @@ class App extends React.Component {
     }
     console.log(`${strTitle}\n${str}`);
   }
-  listDatasets(client) {
+  retrieveStudy(client) {
     // const cloudRegion = 'us-central1';
     // const projectId = 'adjective-noun-123';
     const projectId = 'wide-journey-237913';
@@ -61,15 +61,6 @@ class App extends React.Component {
     const dicomWebPath = 'studies';
     const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
   
-    // const options = {
-    //   url: dicomWebPath,
-    //   headers: {
-    //     'Content-Type': 'application/dicom+json; charset=utf-8',
-    //   },
-    //   method: 'GET',
-    // };
-  
-    //request(options)
     const request = { 
       parent: parentName,
       dicomWebPath: studyName 
@@ -101,6 +92,37 @@ class App extends React.Component {
     //     console.error(err);
     //   });
   }
+  listInstances(client) {
+    // const cloudRegion = 'us-central1';
+    // const projectId = 'adjective-noun-123';
+    const projectId = 'wide-journey-237913';
+    const cloudRegion = 'europe-west2';
+    const dicomDataset = 'TestDicom1';
+    const dicomStore = 'TestDicomStorage2';
+    // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
+    // For future dicomStores request
+    const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
+    const dicomWebPath = 'instances';
+    const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
+  
+    const request = { 
+      parent: parentName,
+      dicomWebPath: dicomWebPath 
+    };
+    client.healthcare.projects.locations.datasets.dicomStores
+      .searchForInstances(request)
+      //searchForStudies(request)      
+      .then(results => {
+        console.log('Request successful:\n');
+        //console.log(results);
+        this.logObject('Studies = ', results);
+        //this.logObject('Headers = ', results.headers);
+        //console.log(results.body.toString());
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  }
   onApi(api) {
     this.logObject('onApi with api = ', api);
     
@@ -110,7 +132,7 @@ class App extends React.Component {
     }
     // When next render comes, if both client and api ready - get dicoms from cloud
     if (api.client !== null && api.signedIn) {
-      this.listDatasets(api.client);
+      this.listInstances(api.client);
     }
     // output html component
     // <div class="g-signin2" data-onsuccess="onSignIn"></div>
