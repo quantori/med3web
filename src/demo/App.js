@@ -53,19 +53,19 @@ class App extends React.Component {
     // const projectId = 'adjective-noun-123';
     const projectId = 'wide-journey-237913';
     const cloudRegion = 'europe-west2';
-    const dicomDataset = 'TestDicom2';
-    // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
+    const dicomDataset = 'TestDicom1';
+    const parentName = `projects/${projectId}/locations/${cloudRegion}`;
     // For future dicomStores request
-    const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}`;
+    //const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}`;
   
     const request = { parent: parentName };
     // await ? are all of these sub-fields available? - should be for the cloud-healthcare scope
-    client.healthcare.projects.locations.datasets.dicomStores
-    // client.projects.locations.datasets
+    // client.healthcare.projects.locations.datasets.dicomStores
+    client.healthcare.projects.locations.datasets
       .list(request)
       .then(results => {
-        console.log(`Dicomstores in ${dicomDataset} :`, results.data);
-        // console.log('Datasets:', results.data);//data format? array of strings?
+        // console.log(`Dicomstores in ${dicomDataset} :`, results.data);
+        console.log('Datasets:', results.data);//data format? array of strings?
       })
       .catch(err => {
         console.error(err);
@@ -83,15 +83,20 @@ class App extends React.Component {
     //   }
     // }
     //api.signedIn.listen(clientLoaded);
-    // api.authorize();
+    // 
     // if (api.error) {
     //   this.logObject('auth failed with error = ', api.error);
     // }
     // Retrieve some dataset info for test purposes
-    if (api.client !== null) {
+    if (api.client !== null && api.signedIn === false) {
+      api.authorize();
+    }
+
+    if (api.client !== null && api.signedIn) {
       this.listDatasets(api.client);
     }
     // output html component
+    // <div class="g-signin2" data-onsuccess="onSignIn"></div>
     const jsxOnApi = <p>
       onApi invoked
     </p>;
@@ -118,8 +123,7 @@ class App extends React.Component {
       discoveryDocs
     ];
     const arrScopes = [
-      SCOPE_HEALTH,
-      SCOPE_CLOUD
+      SCOPE_HEALTH
     ];
 
     const jsxRender = <div>
