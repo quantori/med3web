@@ -54,7 +54,7 @@ class App extends React.Component {
     const projectId = 'wide-journey-237913';
     const cloudRegion = 'europe-west2';
     const dicomDataset = 'TestDicom1';
-    const dicomStore = 'TestDicomStorage1';
+    const dicomStore = 'TestDicomStorage2';
     // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
     // For future dicomStores request
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
@@ -79,6 +79,8 @@ class App extends React.Component {
         console.log('Request successful:\n');
         //console.log(results);
         this.logObject('Studies = ', results);
+        this.logObject('Headers = ', results.headers);
+        console.log(results.body.toString());
       })
       .catch(err => {
         console.error(err);
