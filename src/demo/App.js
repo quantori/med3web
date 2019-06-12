@@ -48,7 +48,7 @@ class App extends React.Component {
     }
     console.log(`${strTitle}\n${str}`);
   }
-  retrieveStudy(client) {
+  listInstancesInSeries(client) {
     // const cloudRegion = 'us-central1';
     // const projectId = 'adjective-noun-123';
     const projectId = 'wide-journey-237913';
@@ -60,19 +60,36 @@ class App extends React.Component {
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
     const dicomWebPath = 'studies';
     const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
-  
+    const seriesName = `${studyName}/series/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.5/instances`;
+
+    const COLUMN_POSITION_TAG = '0048021E';
+    const COLUMNS_TAG = '00280011';  // Number of columns in the image
+    // Per-frame Functional Groups Sequence
+    const FUNCTIONAL_GROUP_SEQUENCE_TAG = '52009230';
+    const PLANE_POSITION_SEQUENCE_TAG = '0048021A';  // Plane Position Sequence
+    const ROW_POSITION_TAG = '0048021F';
+    const ROWS_TAG = '00280010';  // Number of rows in the image
+    const SERIES_INSTANCE_UID_TAG = '0020000E';
+    const SOP_INSTANCE_UID_TAG = '00080018';
+    // Unique identifier for the Series that is part of the Study
+    const STUDY_INSTANCE_UID_TAG = '0020000D';
+    // Total number of columns in pixel matrix
+    const TOTAL_PIXEL_MATRIX_COLUMNS_TAG = '00480006';
+    // Total number of rows in pixel matrix
+    const TOTAL_PIXEL_MATRIX_ROWS_TAG = '00480007';
     const request = { 
       parent: parentName,
-      dicomWebPath: studyName 
+      dicomWebPath: seriesName 
     };
-    client.healthcare.projects.locations.datasets.dicomStores.studies.retrieveStudy(request)
-      //searchForStudies(request)      
-      .then(results => {
+    //client.healthcare.projects.locations.datasets.dicomStores.studies.retrieveStudy(request)
+    client.healthcare.projects.locations.datasets.dicomStores.studies.series.retrieveSeries(request)
+    //searchForStudies(request)      
+      .then(instances => {
         console.log('Request successful:\n');
-        //console.log(results);
-        this.logObject('Studies = ', results);
-        //this.logObject('Headers = ', results.headers);
-        //console.log(results.body.toString());
+        console.log(JSON.stringify(instances, null, 2));
+        // for (let i = 0; i < instances.length; i++) {
+        //   console.log(`${instances[i][SOP_INSTANCE_UID_TAG]}\n`);
+        // }
       })
       .catch(err => {
         console.error(err);
@@ -86,13 +103,14 @@ class App extends React.Component {
     //   .then(results => {
     //     // console.log(`Dicomstores in ${dicomDataset} :`, results.data);
     //     // console.log('Datasets:', results.data);//data format? array of strings?
-    //     this.logObject('Datasets = ', results);
+    //     // this.logObject('Datasets = ', results);
+    //     console.log(JSON.stringify(results, null, 2));
     //   })
     //   .catch(err => {
     //     console.error(err);
     //   });
   }
-  listInstances(client) {
+  listSeries(client) {
     // const cloudRegion = 'us-central1';
     // const projectId = 'adjective-noun-123';
     const projectId = 'wide-journey-237913';
@@ -102,22 +120,22 @@ class App extends React.Component {
     // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
     // For future dicomStores request
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
-    const dicomWebPath = 'instances';
-    const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
+    const dicomWebPath = 'studies';
+    const studyName = `studies/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4/series`;
+    const seriesInstance = '1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.5';
+    const instancePath = `${studyName}/${seriesInstance}/instances`;
   
     const request = { 
       parent: parentName,
-      dicomWebPath: dicomWebPath 
+      dicomWebPath: studyName 
     };
     client.healthcare.projects.locations.datasets.dicomStores
-      .searchForInstances(request)
+      .searchForSeries(request)
       //searchForStudies(request)      
       .then(results => {
         console.log('Request successful:\n');
-        //console.log(results);
-        this.logObject('Studies = ', results);
-        //this.logObject('Headers = ', results.headers);
-        //console.log(results.body.toString());
+        //this.logObject('Datasets = ', results);
+        console.log(JSON.stringify(results, null, 2));
       })
       .catch(err => {
         console.error(err);
@@ -132,7 +150,7 @@ class App extends React.Component {
     }
     // When next render comes, if both client and api ready - get dicoms from cloud
     if (api.client !== null && api.signedIn) {
-      this.listInstances(api.client);
+      this.listInstancesInSeries(api.client);
     }
     // output html component
     // <div class="g-signin2" data-onsuccess="onSignIn"></div>
