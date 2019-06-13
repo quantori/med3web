@@ -24,7 +24,7 @@ import loadScript from '@lourd/load-script'
 // Const
 // ********************************************************
 
-const NEED_GOOGLE_API = true;
+// const NEED_GOOGLE_API = true;
 
 // ********************************************************
 // Class
