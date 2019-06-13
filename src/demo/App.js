@@ -57,26 +57,27 @@ class App extends React.Component {
     const dicomStore = 'TestDicomStorage2';
     // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
     // For future dicomStores request
+    const PrefixURL = 'https://healthcare.googleapis.com/v1beta1/projects/';
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
     const dicomWebPath = 'studies';
     const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
     const seriesName = `${studyName}/series/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.5/instances`;
 
-    const COLUMN_POSITION_TAG = '0048021E';
-    const COLUMNS_TAG = '00280011';  // Number of columns in the image
-    // Per-frame Functional Groups Sequence
-    const FUNCTIONAL_GROUP_SEQUENCE_TAG = '52009230';
-    const PLANE_POSITION_SEQUENCE_TAG = '0048021A';  // Plane Position Sequence
-    const ROW_POSITION_TAG = '0048021F';
-    const ROWS_TAG = '00280010';  // Number of rows in the image
-    const SERIES_INSTANCE_UID_TAG = '0020000E';
+    // const COLUMN_POSITION_TAG = '0048021E';
+    // const COLUMNS_TAG = '00280011';  // Number of columns in the image
+    // // Per-frame Functional Groups Sequence
+    // const FUNCTIONAL_GROUP_SEQUENCE_TAG = '52009230';
+    // const PLANE_POSITION_SEQUENCE_TAG = '0048021A';  // Plane Position Sequence
+    // const ROW_POSITION_TAG = '0048021F';
+    // const ROWS_TAG = '00280010';  // Number of rows in the image
+    // const SERIES_INSTANCE_UID_TAG = '0020000E';
     const SOP_INSTANCE_UID_TAG = '00080018';
-    // Unique identifier for the Series that is part of the Study
-    const STUDY_INSTANCE_UID_TAG = '0020000D';
-    // Total number of columns in pixel matrix
-    const TOTAL_PIXEL_MATRIX_COLUMNS_TAG = '00480006';
-    // Total number of rows in pixel matrix
-    const TOTAL_PIXEL_MATRIX_ROWS_TAG = '00480007';
+    // // Unique identifier for the Series that is part of the Study
+    // const STUDY_INSTANCE_UID_TAG = '0020000D';
+    // // Total number of columns in pixel matrix
+    // const TOTAL_PIXEL_MATRIX_COLUMNS_TAG = '00480006';
+    // // Total number of rows in pixel matrix
+    // const TOTAL_PIXEL_MATRIX_ROWS_TAG = '00480007';
     const request = { 
       parent: parentName,
       dicomWebPath: seriesName 
@@ -86,10 +87,11 @@ class App extends React.Component {
     //searchForStudies(request)      
       .then(instances => {
         console.log('Request successful:\n');
-        console.log(JSON.stringify(instances, null, 2));
-        // for (let i = 0; i < instances.length; i++) {
-        //   console.log(`${instances[i][SOP_INSTANCE_UID_TAG]}\n`);
-        // }
+        
+        //console.log(JSON.stringify(instances, null, 2));
+        for (let i = 0; i < instances.result.length; i++) {
+          console.log(`${PrefixURL}dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}.dcm\n`);
+        }
       })
       .catch(err => {
         console.error(err);
@@ -120,10 +122,8 @@ class App extends React.Component {
     // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
     // For future dicomStores request
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
-    const dicomWebPath = 'studies';
     const studyName = `studies/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4/series`;
-    const seriesInstance = '1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.5';
-    const instancePath = `${studyName}/${seriesInstance}/instances`;
+    
   
     const request = { 
       parent: parentName,
