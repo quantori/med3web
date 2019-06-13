@@ -12,11 +12,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { GoogleApi } from '@lourd/react-google-api';
-
 import UiApp from './ui/UiApp';
 
 import './App.css';
+
+import loadScript from '@lourd/load-script'
 
 
 
@@ -37,6 +37,41 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.onApi = this.onApi.bind(this);
+  }
+  async setupApi(gapiConfig) {
+    try {
+      if (typeof window.gapi === 'undefined') {
+        await loadScript('https://apis.google.com/js/api.js');
+      }
+      if (!window.gapi.client) {
+        await new Promise((resolve, reject) => window.gapi.load('client:auth2', {
+          callback: resolve,
+          onerror: reject
+        }));
+      }
+      await window.gapi.client.init({
+        apiKey: gapiConfig.apiKey,
+        clientId: gapiConfig.clientId,
+        discoveryDocs: gapiConfig.discoveryDocs,
+        scope: gapiConfig.scopes.join(',')
+      });
+    } catch (error) {
+      this.setState({
+        loading: false,
+        error
+      });
+      return;
+    }
+    this.auth = window.gapi.auth2.getAuthInstance();
+    //this.setState({
+    this.api = {
+      client: window.gapi.client,
+      googleAuth: this.auth,
+      loading: false,
+      signedIn: this.auth.isSignedIn.get()
+    };
+    this.onApi(this.api);
+    this.auth.isSignedIn.listen(signedIn => this.setState({ signedIn }));
   }
   logObject(strTitle, obj) {
     let str = '';
@@ -88,16 +123,12 @@ class App extends React.Component {
     };
     
     //client.healthcare.projects.locations.datasets.dicomStores.studies.retrieveStudy(request)
-    client.healthcare.projects.locations.datasets.dicomStores.studies.series.retrieveSeries(request)
-    //searchForStudies(request)      
+    client.healthcare.projects.locations.datasets.dicomStores.studies.series.retrieveSeries(request)      
       .then(instances => {
-        console.log('Request successful:\n');
-        
-        console.log(JSON.stringify(client, null, 2));
         for (let i = 0; i < instances.result.length; i++) {
           const dcmPath = `${PrefixURL}${parentName}/dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}.dcm`;
-          //console.log(`${this.toDicomWebQIDOUrl(dcmPath, googleAuth)}\n`)
-          console.log(`${dcmPath}\n`)
+          console.log(`${this.toDicomWebQIDOUrl(dcmPath, googleAuth)}\n`)
+          //console.log(`${dcmPath}\n`)
         }
       })
       .catch(err => {
@@ -170,7 +201,7 @@ class App extends React.Component {
       //   .catch(err => {
       //     console.error(err);
       //   });
-      this.listInstancesInSeries(api.client, api.googleAuth);
+      this.listInstancesInSeries(this.api.client, this.api.googleAuth);
     }
     // output html component
     // <div class="g-signin2" data-onsuccess="onSignIn"></div>
@@ -178,6 +209,9 @@ class App extends React.Component {
       onApi invoked
     </p>;
     return jsxOnApi;
+  }
+  componentDidMount() {
+    this.setupApi();
   }
   /**
    * Main component render func callback
@@ -202,14 +236,20 @@ class App extends React.Component {
     const arrScopes = [
       SCOPE_HEALTH
     ];
-
+    let gapiProps = {};
+    gapiProps.clientId = CLIENT_ID;
+    gapiProps.apiKey = googleApiKey;
+    gapiProps.discoveryDocs = arrDocs;
+    gapiProps.scopes = arrScopes;
+    this.setupApi(gapiProps);
+/*<GoogleApi clientId={CLIENT_ID} apiKey={googleApiKey} discoveryDocs={arrDocs} scopes={arrScopes} children={this.onApi} >
+      </GoogleApi>*/
     const jsxRender = <div>
       <UiApp />
       <p>
         Test google api...
       </p>
-      <GoogleApi clientId={CLIENT_ID} apiKey={googleApiKey} discoveryDocs={arrDocs} scopes={arrScopes} children={this.onApi} >
-      </GoogleApi>
+      
       
     </div>;
     return jsxRender;
