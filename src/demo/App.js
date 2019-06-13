@@ -180,27 +180,18 @@ class App extends React.Component {
       });
   }
   onApi(api) {
-    //this.logObject('onApi with api = ', api);
+    this.logObject('onApi with api = ', api);
     //console.log(JSON.stringify(api, null, 2));
     //console.log(JSON.stringify(api, null, 2));
     // Authorize via google account
     if (api.client !== null && api.signedIn === false) {
-      api.authorize();
+      this.authorize().then( () => {      
+        console.log('Authorized');
+      });
     }
     // When next render comes, if both client and api ready - get dicoms from cloud
     if (api.client !== null && api.signedIn) {
-      // const request = { 
-      //   access_token: ''
-      // };
-      // api.client.healthcare.kB.get(request)
-      //   .then(results => {
-      //     console.log('Request successful:\n');
-      //     //this.logObject('Datasets = ', results);
-      //     console.log(JSON.stringify(results, null, 2));
-      //   })
-      //   .catch(err => {
-      //     console.error(err);
-      //   });
+      console.log('Requesting instances..');
       this.listInstancesInSeries(this.api.client, this.api.googleAuth);
     }
     // output html component
@@ -211,15 +202,6 @@ class App extends React.Component {
     return jsxOnApi;
   }
   componentDidMount() {
-    this.setupApi();
-  }
-  /**
-   * Main component render func callback
-   */
-  render() {
-    if (!NEED_GOOGLE_API) {
-      return <UiApp />;
-    }
     const googleApiKey = 'AIzaSyDFEE_nKXzp0tTZBIZiHpjw8E7m1EUcy6Y'
     const CLIENT_ID = '2955718871-q4onol31phj03ndpq344dkbd0qs8b51n.apps.googleusercontent.com'
     // const SERVICE_ACCOUNT_JSON = './My Project 90848-dcbe1e05fb8a.json'
@@ -242,15 +224,18 @@ class App extends React.Component {
     gapiProps.discoveryDocs = arrDocs;
     gapiProps.scopes = arrScopes;
     this.setupApi(gapiProps);
-/*<GoogleApi clientId={CLIENT_ID} apiKey={googleApiKey} discoveryDocs={arrDocs} scopes={arrScopes} children={this.onApi} >
-      </GoogleApi>*/
+  }
+  authorize() {
+    if (this.api.googleAuth) {
+      this.api.googleAuth.signIn();
+    }
+  }
+  /**
+   * Main component render func callback
+   */
+  render() {
     const jsxRender = <div>
       <UiApp />
-      <p>
-        Test google api...
-      </p>
-      
-      
     </div>;
     return jsxRender;
   } // end render
