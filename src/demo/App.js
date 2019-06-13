@@ -84,7 +84,7 @@ class App extends React.Component {
     console.log(`${strTitle}\n${str}`);
   }
   toDicomWebQIDOUrl(path, googleAuth) {
-    return path + '?includefield=all&access_token=' +
+    return path + '?access_token=' +
       googleAuth.currentUser.get().getAuthResponse(true).access_token;
   }
   listInstancesInSeries(client, googleAuth) {
@@ -126,7 +126,7 @@ class App extends React.Component {
     client.healthcare.projects.locations.datasets.dicomStores.studies.series.retrieveSeries(request)      
       .then(instances => {
         for (let i = 0; i < instances.result.length; i++) {
-          const dcmPath = `${PrefixURL}${parentName}/dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}.dcm`;
+          const dcmPath = `${PrefixURL}${parentName}/dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}`;
           console.log(`${this.toDicomWebQIDOUrl(dcmPath, googleAuth)}\n`)
           //console.log(`${dcmPath}\n`)
         }
