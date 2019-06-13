@@ -48,7 +48,11 @@ class App extends React.Component {
     }
     console.log(`${strTitle}\n${str}`);
   }
-  listInstancesInSeries(client) {
+  toDicomWebQIDOUrl(path, googleAuth) {
+    return path + '?includefield=all&access_token=' +
+      googleAuth.currentUser.get().getAuthResponse(true).access_token;
+  }
+  listInstancesInSeries(client, googleAuth) {
     // const cloudRegion = 'us-central1';
     // const projectId = 'adjective-noun-123';
     const projectId = 'wide-journey-237913';
@@ -57,7 +61,7 @@ class App extends React.Component {
     const dicomStore = 'TestDicomStorage2';
     // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
     // For future dicomStores request
-    const PrefixURL = 'https://healthcare.googleapis.com/v1beta1/projects/';
+    const PrefixURL = 'https://healthcare.googleapis.com/v1beta1/';
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
     const dicomWebPath = 'studies';
     const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
@@ -82,15 +86,18 @@ class App extends React.Component {
       parent: parentName,
       dicomWebPath: seriesName 
     };
+    
     //client.healthcare.projects.locations.datasets.dicomStores.studies.retrieveStudy(request)
     client.healthcare.projects.locations.datasets.dicomStores.studies.series.retrieveSeries(request)
     //searchForStudies(request)      
       .then(instances => {
         console.log('Request successful:\n');
         
-        //console.log(JSON.stringify(instances, null, 2));
+        console.log(JSON.stringify(client, null, 2));
         for (let i = 0; i < instances.result.length; i++) {
-          console.log(`${PrefixURL}dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}.dcm\n`);
+          const dcmPath = `${PrefixURL}${parentName}/dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}.dcm`;
+          //console.log(`${this.toDicomWebQIDOUrl(dcmPath, googleAuth)}\n`)
+          console.log(`${dcmPath}\n`)
         }
       })
       .catch(err => {
@@ -142,15 +149,28 @@ class App extends React.Component {
       });
   }
   onApi(api) {
-    this.logObject('onApi with api = ', api);
-    
+    //this.logObject('onApi with api = ', api);
+    //console.log(JSON.stringify(api, null, 2));
+    //console.log(JSON.stringify(api, null, 2));
     // Authorize via google account
     if (api.client !== null && api.signedIn === false) {
       api.authorize();
     }
     // When next render comes, if both client and api ready - get dicoms from cloud
     if (api.client !== null && api.signedIn) {
-      this.listInstancesInSeries(api.client);
+      // const request = { 
+      //   access_token: ''
+      // };
+      // api.client.healthcare.kB.get(request)
+      //   .then(results => {
+      //     console.log('Request successful:\n');
+      //     //this.logObject('Datasets = ', results);
+      //     console.log(JSON.stringify(results, null, 2));
+      //   })
+      //   .catch(err => {
+      //     console.error(err);
+      //   });
+      this.listInstancesInSeries(api.client, api.googleAuth);
     }
     // output html component
     // <div class="g-signin2" data-onsuccess="onSignIn"></div>
