@@ -4,6 +4,7 @@ import StoreActionType from './ActionTypes';
 import ModeView from './ModeView';
 import Modes2d from './Modes2d';
 import Modes3d from './Modes3d';
+import Modes3droi from './Modes3droi';
 
 //
 // Global app settings with initial configuration
@@ -20,6 +21,7 @@ export const initialState = {
   slider3d_g: 0.3,
   slider3d_b: 0.46,
   mode3d: Modes3d.RAYCAST,
+  mode3droi: Modes3droi.RAYCAST,
   sliderOpacity: 0.53,
   sliderIsosurface: 0.46,
   sliderBrightness: 0.56,
@@ -37,6 +39,7 @@ export const initialState = {
   dicomInfo: null,
   isTool3D: false,
   sliderContrast3D: 0.0,
+  arrErrors: [],
 };
 //
 // App reducer
@@ -59,6 +62,8 @@ const medReducer = (state = initialState, action) => {
     return Object.assign({}, state, { slider2d: action.slider2d });
   case StoreActionType.SET_MODE_3D:
     return Object.assign({}, state, { mode3d: action.mode3d });
+  case StoreActionType.SET_MODE_3Droi:
+    return Object.assign({}, state, { mode3droi: action.mode3droi });
   case StoreActionType.SET_SLIDER_3DR:
     return Object.assign({}, state, { slider3d_r: action.slider3d_r });
   case StoreActionType.SET_SLIDER_3DG:
@@ -99,6 +104,8 @@ const medReducer = (state = initialState, action) => {
     return Object.assign({}, state, { isTool3D: action.isTool3D });
   case StoreActionType.SET_SLIDER_Contrast3D:
     return Object.assign({}, state, { sliderContrast3D: action.sliderContrast3D });
+  case StoreActionType.SET_ERR_ARRAY:
+    return Object.assign({}, state, { arrErrors: action.arrErrors });
   default:
     return state;
   }

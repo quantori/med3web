@@ -30,5 +30,7 @@ const StoreActionType = {
   SET_DICOM_INFO: 25,
   SET_IS_TOOL3D: 26,
   SET_SLIDER_Contrast3D: 27,
+  SET_ERR_ARRAY: 28,
+  SET_MODE_3Droi: 29,
 };
 export default StoreActionType;

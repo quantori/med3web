@@ -28,6 +28,10 @@ import FileTools from '../engine/loaders/FileTools';
 import LoaderDicom from '../engine/loaders/LoaderDicom';
 import LoaderHdr from '../engine/loaders/LoaderHdr';
 
+import LoaderUrlDicom from '../engine/loaders/LoaderUrlDicom';
+
+import config from '../config/config';
+
 // ********************************************************
 // Const
 // ********************************************************
@@ -51,9 +55,10 @@ class UiOpenMenu extends React.Component {
     super(props);
     this.onButtonLocalFile = this.onButtonLocalFile.bind(this);
     this.handleFileSelected = this.handleFileSelected.bind(this);
-    this.onFileContentRead = this.onFileContentRead.bind(this);
+    this.onFileContentReadSingleFile = this.onFileContentReadSingleFile.bind(this);
     this.onFileContentReadMultipleDicom = this.onFileContentReadMultipleDicom.bind(this);
     this.onFileContentReadMultipleHdr = this.onFileContentReadMultipleHdr.bind(this);
+    this.setErrorString = this.setErrorString.bind(this);
 
     this.onModalUrlShow = this.onModalUrlShow.bind(this);
     this.onModalUrlHide = this.onModalUrlHide.bind(this);
@@ -67,6 +72,8 @@ class UiOpenMenu extends React.Component {
 
     this.callbackReadProgress = this.callbackReadProgress.bind(this);
     this.callbackReadComplete = this.callbackReadComplete.bind(this);
+    this.callbackReadSingleDicomComplete = this.callbackReadSingleDicomComplete.bind(this);
+    this.callbackReadMultipleComplete = this.callbackReadMultipleComplete.bind(this);
 
     this.m_fileName = '';
     this.m_fileReader = null;
@@ -89,11 +96,31 @@ class UiOpenMenu extends React.Component {
     store.dispatch({ type: StoreActionType.SET_VOLUME, volume: vol });
     store.dispatch({ type: StoreActionType.SET_IS_LOADED, isLoaded: true });
     store.dispatch({ type: StoreActionType.SET_FILENAME, fileName: fileNameIn });
+    store.dispatch({ type: StoreActionType.SET_ERR_ARRAY, arrErrors: [] });
     const tex3d = new Texture3D();
     tex3d.createFromRawVolume(vol);
     store.dispatch({ type: StoreActionType.SET_TEXTURE3D, texture3d: tex3d });
     store.dispatch({ type: StoreActionType.SET_MODE_VIEW, modeView: ModeView.VIEW_2D });
     store.dispatch({ type: StoreActionType.SET_MODE_3D, mode3d: Modes3d.RAYCAST });
+  }
+  setErrorString(strErr) {
+    const store = this.props;
+    const arrErrors = [];
+    arrErrors.push(strErr);
+    store.dispatch({ type: StoreActionType.SET_IS_LOADED, isLoaded: false });
+    store.dispatch({ type: StoreActionType.SET_ERR_ARRAY, arrErrors: arrErrors });
+    store.dispatch({ type: StoreActionType.SET_VOLUME, volume: null });
+  }
+  finalizeFailedLoadedVolume(vol, fileNameIn, arrErrors) {
+    // invoke notification
+    const store = this.props;
+    store.dispatch({ type: StoreActionType.SET_IS_LOADED, isLoaded: false });
+    store.dispatch({ type: StoreActionType.SET_VOLUME, volume: null });
+    store.dispatch({ type: StoreActionType.SET_ERR_ARRAY, arrErrors: arrErrors });
+    store.dispatch({ type: StoreActionType.SET_FILENAME, fileName: fileNameIn });
+
+    const uiapp = store.uiApp;
+    uiapp.doHideProgressBar();
   }
   callbackReadProgress(ratio01) {
     // console.log(`callbackReadProgress = ${ratio01}`);
@@ -110,49 +137,90 @@ class UiOpenMenu extends React.Component {
       uiapp.doSetProgressBarRatio(ratioPrc);
     }
   } // callback progress
-  callbackReadComplete() {
+  callbackReadComplete(errCode) {
+    if (errCode === undefined) {
+      console.log('callbackReadComplete. should be errCode');
+    } else {
+      if (errCode !== LoadResult.SUCCESS) {
+        const strErr = LoadResult.getResultString(errCode);
+        this.setErrorString(strErr);
+      }
+    }
     const store = this.props;
     const uiapp = store.uiApp;
     // console.log(`callbackReadComplete wiyth err = ${loadErrorCode}`);
     uiapp.doHideProgressBar();
+
+    if (errCode === LoadResult.SUCCESS) {
+      console.log('callbackReadComplete finished OK');
+      this.finalizeSuccessLoadedVolume(this.m_volume, this.m_fileName);
+    } else {
+      console.log(`callbackReadComplete failed! reading ${this.m_fileName} file`);
+      const arrErr = [];
+      const strErr = LoadResult.getResultString(errCode);
+      arrErr.push(strErr);
+      this.finalizeFailedLoadedVolume(this.m_volume, this.m_fileName, arrErr);
+    }
   }
+  callbackReadSingleDicomComplete(errCode) {
+    if (errCode === LoadResult.SUCCESS) {
+      this.m_loaderDicom.createVolumeFromSlices(this.m_volume);
+    }
+    this.callbackReadComplete(errCode);
+  }
+  callbackReadMultipleComplete(errCode) {
+    if (errCode !== LoadResult.SUCCESS) {
+      const strErr = LoadResult.getResultString(errCode);
+      this.setErrorString(strErr);
+    }
+  }
+  //
   // based on local file read
   // read from string content in this.m_fileReader.result
   //
-  onFileContentRead() {
-    console.log('UiOpenMenu. onFileContectRead ...');
+  onFileContentReadSingleFile() {
+    console.log('UiOpenMenu. onFileContentReadSingleFile ...');
     const strContent = this.m_fileReader.result;
     // console.log(`file content = ${strContent.substring(0, 64)}`);
     // console.log(`onFileContentRead. type = ${typeof strContent}`);
-    const vol = new Volume();
+    this.m_volume = new Volume();
     const callbackProgress = this.callbackReadProgress;
     const callbackComplete = this.callbackReadComplete;
-    let readOk = false;
+    const callbackCompleteSingleDicom = this.callbackReadSingleDicomComplete;
+
     if (this.m_fileName.endsWith('.ktx') || this.m_fileName.endsWith('.KTX')) {
       // if read ktx
-      readOk = vol.readFromKtx(strContent, callbackProgress, callbackComplete);
+      this.m_volume.readFromKtx(strContent, callbackProgress, callbackComplete);
     } else if (this.m_fileName.endsWith('.nii') || this.m_fileName.endsWith('.NII')) {
-      readOk = vol.readFromNifti(strContent, callbackProgress, callbackComplete);
+      this.m_volume.readFromNifti(strContent, callbackProgress, callbackComplete);
     } else if (this.m_fileName.endsWith('.dcm') || this.m_fileName.endsWith('.DCM')) {
-      const status = vol.readFromDicom(strContent, callbackProgress, callbackComplete);
-      readOk = (status === LoadResult.SUCCESS) ? true : false;
+      this.m_loaderDicom = new LoaderDicom();
+      this.m_loaderDicom.m_zDim = 1;
+      this.m_loaderDicom.m_numFiles = 1;
+      this.m_volume.readFromDicom(this.m_loaderDicom, strContent, callbackProgress, callbackCompleteSingleDicom);
     } else if (this.m_fileName.endsWith('.hdr') || this.m_fileName.endsWith('.HDR')) {
       // readOk = vol.readFromHdrHeader(strContent, callbackProgress, callbackComplete);
       console.log(`cant read single hdr file: ${this.m_fileName}`);
-      readOk = false;
+      // readStatus = LoadResult.BAD_HEADER;
     } else if (this.m_fileName.endsWith('.img') || this.m_fileName.endsWith('.IMG')) {
       // readOk = vol.readFromHdrImage(strContent, callbackProgress, callbackComplete);
       console.log(`cant read single img file: ${this.m_fileName}`);
-      readOk = false;
+      // readStatus = LoadResult.BAD_HEADER;
     } else {
-      console.log(`onFileContentRead: unknown file type: ${this.m_fileName}`);
+      console.log(`onFileContentReadSingleFile: unknown file type: ${this.m_fileName}`);
     }
-    if (readOk) {
+    /*
+    if (readStatus === LoadResult.SUCCESS) {
       console.log('onFileContentRead finished OK');
       this.finalizeSuccessLoadedVolume(vol, this.m_fileName);
     } else {
       console.log(`onFileContentRead failed! reading ${this.m_fileName} file`);
+      const arrErr = [];
+      const strErr = LoadResult.getResultString(readStatus);
+      arrErr.push(strErr);
+      this.finalizeFailedLoadedVolume(vol, this.m_fileName, arrErr);
     }
+    */
   }
   //
   // read hdr/img. content is in this.m_fileReader.result
@@ -233,16 +301,12 @@ class UiOpenMenu extends React.Component {
           ok = this.m_loader.createRoiVolumeFromHeaderAndImage(this.m_volume, this.m_volumeRoi);
         }
       }
-      if (!ok) {
-        this.callbackReadProgress(1.0);
-        this.callbackReadComplete(LoadResult.FAIL, null, 0, null);
-        return;
-      }
-      this.finalizeSuccessLoadedVolume(this.m_volume, this.m_fileName);
-      console.log(`onFileContentReadMultipleHdr read all ${this.m_numFiles} files`);
-
       this.callbackReadProgress(1.0);
-      this.callbackReadComplete(LoadResult.SUCCES, null, 0, null);
+      if (!ok) {
+        this.callbackReadComplete(LoadResult.FAIL);
+      } else {
+        this.callbackReadComplete(LoadResult.SUCCESS);
+      }
     }
 
     // read again new file
@@ -265,24 +329,24 @@ class UiOpenMenu extends React.Component {
     const ratioLoad = this.m_fileIndex / this.m_numFiles;
     // console.log(`onFileContentReadMultipleDicom. r = ${ratioLoad}`);
     const callbackProgress = null;
-    const callbackComplete = null;
+    const callbackComplete = this.callbackReadMultipleComplete;
 
     if (this.m_fileIndex <= 1) {
       this.callbackReadProgress(0.0);
     }
 
-    const readOk = this.m_volume.readSingleSliceFromDicom(this.m_loader, this.m_fileIndex - 1, 
+    const readStatus = this.m_volume.readSingleSliceFromDicom(this.m_loader, this.m_fileIndex - 1, 
       this.m_fileName, ratioLoad, strContent, callbackProgress, callbackComplete);
-    if (!readOk) {
+    if (readStatus !== LoadResult.SUCCESS) {
       console.log('onFileContentReadMultipleDicom. Error read individual file');
     }
-    if (readOk && (this.m_fileIndex === this.m_numFiles)) {
+    if ( (readStatus === LoadResult.SUCCESS) && (this.m_fileIndex === this.m_numFiles)) {
       this.m_loader.createVolumeFromSlices(this.m_volume);
       this.finalizeSuccessLoadedVolume(this.m_volume, this.m_fileName);
       console.log(`onFileContentReadMultipleDicom read all ${this.m_numFiles} files`);
 
       this.callbackReadProgress(1.0);
-      this.callbackReadComplete(LoadResult.SUCCES, null, 0, null);
+      this.callbackReadComplete(LoadResult.SUCCESS);
     }
     // read again new file
     if (this.m_fileIndex < this.m_numFiles) {
@@ -311,7 +375,7 @@ class UiOpenMenu extends React.Component {
         const file = evt.target.files[0];
         this.m_fileName = file.name;
         this.m_fileReader = new FileReader();
-        this.m_fileReader.onloadend = this.onFileContentRead;
+        this.m_fileReader.onloadend = this.onFileContentReadSingleFile;
         this.m_fileReader.readAsArrayBuffer(file);
       } else {
         // not single file was open
@@ -380,10 +444,16 @@ class UiOpenMenu extends React.Component {
   callbackReadCompleteUrlKtxNii(codeResult) {
     if (codeResult !== LoadResult.SUCCESS) {
       console.log(`onCompleteFromUrlKtx. Bad result: ${codeResult}`);
+
+      const arrErrors = [];
+      const strErr = LoadResult.getResultString(codeResult);
+      arrErrors.push(strErr);
+      this.finalizeFailedLoadedVolume(this.m_volume, this.m_fileName, arrErrors);
       return;
+    } else {
+      this.finalizeSuccessLoadedVolume(this.m_volume, this.m_fileName);
+      this.callbackReadComplete(LoadResult.SUCCESS, null, 0, null);
     }
-    this.finalizeSuccessLoadedVolume(this.m_vol, this.m_fileName);
-    this.callbackReadComplete(LoadResult.SUCCESS, null, 0, null);
   }
   loadFromUrl(strUrl) {
     const fileTools = new FileTools();
@@ -394,51 +464,42 @@ class UiOpenMenu extends React.Component {
       this.m_fileName = fileTools.getFileNameFromUrl(strUrl);
 
       if (strUrl.endsWith('.ktx')) {
-        this.m_vol = new Volume();
+        this.m_volume = new Volume();
         const callbackProgress = this.callbackReadProgress;
         const callbackComplete = this.callbackReadCompleteUrlKtxNii;
         this.callbackReadProgress(0.0);
-        const readOk = this.m_vol.readFromKtxUrl(strUrl, callbackProgress, callbackComplete);
-        if (!readOk) {
-          console.log(`loadFromUrl read returns failed! reading ${strUrl} file`);
-        }
+        this.m_volume.readFromKtxUrl(strUrl, callbackProgress, callbackComplete);
         // if KTX
       } else if (strUrl.endsWith('.nii')) {
-        this.m_vol = new Volume();
+        this.m_volume = new Volume();
         const callbackProgress = this.callbackReadProgress;
         const callbackComplete = this.callbackReadCompleteUrlKtxNii;
         this.callbackReadProgress(0.0);
-        const readOk = this.m_vol.readFromNiiUrl(strUrl, callbackProgress, callbackComplete);
-        if (!readOk) {
-          console.log(`loadFromUrl read returns failed! reading ${strUrl} file`);
-        }
+        this.m_volume.readFromNiiUrl(strUrl, callbackProgress, callbackComplete);
         // if NII (Nifti format)
       } else if (strUrl.endsWith('.dcm')) {
-        this.m_vol = new Volume();
+        this.m_volume = new Volume();
         const callbackProgress = this.callbackReadProgress;
         const callbackComplete = this.callbackReadCompleteUrlKtxNii;
         this.callbackReadProgress(0.0);
-        const readOk = this.m_vol.readFromDicomUrl(strUrl, callbackProgress, callbackComplete);
-        if (!readOk) {
-          console.log(`loadFromUrl read returns failed! reading ${strUrl} file`);
-        }
+        this.m_volume.readFromDicomUrl(strUrl, callbackProgress, callbackComplete);
         // if Dicom
       } else if (strUrl.endsWith('.h')) {
-        this.m_vol = new Volume();
+        this.m_volume = new Volume();
         const callbackProgress = this.callbackReadProgress;
         const callbackComplete = this.callbackReadCompleteUrlKtxNii;
         this.callbackReadProgress(0.0);
-        const readOk = this.m_vol.readFromHdrUrl(strUrl, callbackProgress, callbackComplete);
-        if (!readOk) {
-          console.log(`loadFromUrl read returns failed! reading ${strUrl} file`);
-        }
+        this.m_volume.readFromHdrUrl(strUrl, callbackProgress, callbackComplete);
         // if Hdr
       } else {
         console.log(`UiOpenMenu. Unknow file type from URL = ${strUrl}`);
       }
+
       // if valid url
     } else {
-      console.log(`UiOpenMenu. Bad URL = ${strUrl}`);
+      const strErr = `UiOpenMenu. Bad URL = ${strUrl}`;
+      console.log(strErr);
+      this.setErrorString(strErr);
     }
   }
   onClickLoadUrl() {
@@ -453,6 +514,15 @@ class UiOpenMenu extends React.Component {
   }
   onModalDemoOpenHide() {
     this.setState({ showModalDemo: false });
+  }
+  arrNumToStr(arrNums) {
+    const numLet = arrNums.length;
+    let str = '';
+    for (let i = 0; i < numLet; i++) {
+      const n = arrNums[i];
+      str = str.concat( String.fromCharCode(n) );
+    }
+    return str;
   }
   onDemoSelected(index) {
     let fileName = '';
@@ -476,19 +546,47 @@ class UiOpenMenu extends React.Component {
       // fileName = ft.encodeUrl(FN_GM_DECODED);
       // console.log(`onDemoSelected. enc = ${fileName}`);
     } else if (index === 3) {
-      // woman pelvis
-      const FN_WOMM_ENCODED = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/ejdpn/xpnbo_qfmwjt/wig.:12.edn';
-      const ft = new FileTools();
-      fileName = ft.decodeUrl(FN_WOMM_ENCODED);
-      //fileName = ft.encodeUrl(FN_WOM_DECODED);
-      // console.log(`onDemoSelected. enc = ${fileName}`);
+      const numUrls = config.demoWomanPelvisUrls.length;
+      if (numUrls === 0) {
+        // woman pelvis
+        const FN_WOMM_ENCODED = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/ejdpn/xpnbo_qfmwjt/wig.:12.edn';
+        const ft = new FileTools();
+        fileName = ft.decodeUrl(FN_WOMM_ENCODED);
+      } else {
+        const strPrefix = config.demoWomanPelvisPrefix;
+        // console.log(`config. prefix = ${strPrefix}`);
+        const arrFileNames = [];
+        for (let i = 0; i < numUrls; i++) {
+          const strFn = config.demoWomanPelvisUrls[i];
+          const url = `${strPrefix}${strFn}`;
+          arrFileNames.push(url);
+        }
+        const store = this.props;
+        const loader = new LoaderUrlDicom(store);
+        loader.loadFromUrlArray(arrFileNames);
+        return;
+      }
     } else if (index === 4) {
-      // lungs dicom 00cba..957e.dcm
-      const FN_OCB_ENCODED = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/ejdpn/11dcb1:2gb5be73dd4311b768bfc:68f/145784245dcfg6fb26gg:f1d91:1611b.edn';
-      const ft = new FileTools();
-      fileName = ft.decodeUrl(FN_OCB_ENCODED);
-      // fileName = ft.encodeUrl(FN_OCB_DECODED);
-      // console.log(`onDemoSelected. enc = ${fileName}`);
+      const numUrls = config.demoLungsUrls.length;
+      if (numUrls === 0) {
+        // lungs dicom 00cba..957e.dcm
+        const FN_OCB_ENCODED = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/ejdpn/11dcb1:2gb5be73dd4311b768bfc:68f/145784245dcfg6fb26gg:f1d91:1611b.edn';
+        const ft = new FileTools();
+        fileName = ft.decodeUrl(FN_OCB_ENCODED);
+      } else {
+        const strPrefix = config.demoLungsPrefix;
+        console.log(`config. Lungs prefix = ${strPrefix}`);
+        const arrFileNames = [];
+        for (let i = 0; i < numUrls; i++) {
+          const strFn = config.demoLungsUrls[i];
+          const url = `${strPrefix}${strFn}`;
+          arrFileNames.push(url);
+        }
+        const store = this.props;
+        const loader = new LoaderUrlDicom(store);
+        loader.loadFromUrlArray(arrFileNames);
+        return;
+      }
     } else if (index === 5) {
       // ct_256_256_256.ktx
       const FN_CT256_ENCODED = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/luy/du_367_367_367.luy';
@@ -509,8 +607,6 @@ class UiOpenMenu extends React.Component {
       const FN_HDRSET_ENCODED = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/ies/tfu_jouo.i';
       const ft = new FileTools();
       fileName = ft.decodeUrl(FN_HDRSET_ENCODED);
-      //fileName = ft.encodeUrl(FN_HDRSET_DECODED);
-      //console.log(`onDemoSelected. enc = ${fileName}`);
     } else {
       console.log(`onDemoSelected. not implemented for index = ${index}`);
     }
