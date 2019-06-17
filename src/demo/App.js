@@ -11,10 +11,10 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
-
 import UiApp from './ui/UiApp';
+import LoaderUrlDicom from './engine/loaders/LoaderUrlDicom'
+import './App.css'
 
-import './App.css';
 
 import loadScript from '@lourd/load-script'
 
@@ -87,68 +87,37 @@ class App extends React.Component {
     return path + '?access_token=' +
       googleAuth.currentUser.get().getAuthResponse(true).access_token;
   }
-  listInstancesInSeries(client, googleAuth) {
-    // const cloudRegion = 'us-central1';
-    // const projectId = 'adjective-noun-123';
+  listInstancesInSeries(client, googleAuth, onUrlCaptured) {
     const projectId = 'wide-journey-237913';
     const cloudRegion = 'europe-west2';
     const dicomDataset = 'TestDicom1';
     const dicomStore = 'TestDicomStorage2';
-    // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
-    // For future dicomStores request
     const PrefixURL = 'https://healthcare.googleapis.com/v1beta1/';
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
     const dicomWebPath = 'studies';
     const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
     const seriesName = `${studyName}/series/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.5/instances`;
 
-    // const COLUMN_POSITION_TAG = '0048021E';
-    // const COLUMNS_TAG = '00280011';  // Number of columns in the image
-    // // Per-frame Functional Groups Sequence
-    // const FUNCTIONAL_GROUP_SEQUENCE_TAG = '52009230';
-    // const PLANE_POSITION_SEQUENCE_TAG = '0048021A';  // Plane Position Sequence
-    // const ROW_POSITION_TAG = '0048021F';
-    // const ROWS_TAG = '00280010';  // Number of rows in the image
-    // const SERIES_INSTANCE_UID_TAG = '0020000E';
     const SOP_INSTANCE_UID_TAG = '00080018';
-    // // Unique identifier for the Series that is part of the Study
-    // const STUDY_INSTANCE_UID_TAG = '0020000D';
-    // // Total number of columns in pixel matrix
-    // const TOTAL_PIXEL_MATRIX_COLUMNS_TAG = '00480006';
-    // // Total number of rows in pixel matrix
-    // const TOTAL_PIXEL_MATRIX_ROWS_TAG = '00480007';
     const request = { 
       parent: parentName,
       dicomWebPath: seriesName 
     };
-    
+    let urlArray = []
     //client.healthcare.projects.locations.datasets.dicomStores.studies.retrieveStudy(request)
     client.healthcare.projects.locations.datasets.dicomStores.studies.series.retrieveSeries(request)      
       .then(instances => {
         for (let i = 0; i < instances.result.length; i++) {
           const dcmPath = `${PrefixURL}${parentName}/dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}`;
-          console.log(`${this.toDicomWebQIDOUrl(dcmPath, googleAuth)}\n`)
+          //console.log(`${this.toDicomWebQIDOUrl(dcmPath, googleAuth)}\n`)
+          urlArray.push(this.toDicomWebQIDOUrl(dcmPath, googleAuth));
           //console.log(`${dcmPath}\n`)
         }
+        onUrlCaptured(urlArray);
       })
       .catch(err => {
         console.error(err);
-      });
-  
-    // const request = { parent: parentName };
-    // // await ? are all of these sub-fields available? - should be for the cloud-healthcare scope
-    // // client.healthcare.projects.locations.datasets.dicomStores
-    // client.healthcare.projects.locations.datasets
-    //   .list(request)
-    //   .then(results => {
-    //     // console.log(`Dicomstores in ${dicomDataset} :`, results.data);
-    //     // console.log('Datasets:', results.data);//data format? array of strings?
-    //     // this.logObject('Datasets = ', results);
-    //     console.log(JSON.stringify(results, null, 2));
-    //   })
-    //   .catch(err => {
-    //     console.error(err);
-    //   });
+      });    
   }
   listSeries(client) {
     // const cloudRegion = 'us-central1';
@@ -181,8 +150,6 @@ class App extends React.Component {
   }
   onApi(api) {
     this.logObject('onApi with api = ', api);
-    //console.log(JSON.stringify(api, null, 2));
-    //console.log(JSON.stringify(api, null, 2));
     // Authorize via google account
     if (api.client !== null && api.signedIn === false) {
       this.authorize().then( () => {      
@@ -192,7 +159,13 @@ class App extends React.Component {
     // When next render comes, if both client and api ready - get dicoms from cloud
     if (api.client !== null && api.signedIn) {
       console.log('Requesting instances..');
-      this.listInstancesInSeries(this.api.client, this.api.googleAuth);
+      this.listInstancesInSeries(this.api.client, this.api.googleAuth, (urlArray) => {
+        //this.props.urlArray = urlArray;
+        const store = this.props;
+        const loader = new LoaderUrlDicom(store);
+        const READ_FROM_GOOGLE = true;
+        loader.loadFromUrlArray(urlArray, READ_FROM_GOOGLE);
+      });
     }
     // output html component
     // <div class="g-signin2" data-onsuccess="onSignIn"></div>
