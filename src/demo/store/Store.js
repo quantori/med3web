@@ -40,12 +40,15 @@ export const initialState = {
   isTool3D: false,
   sliderContrast3D: 0.0,
   arrErrors: [],
+  googleApi: null
 };
 //
 // App reducer
 //
 const medReducer = (state = initialState, action) => {
   switch (action.type) {
+  case StoreActionType.SET_GOOGLE_API:
+    return Object.assign({}, state, { googleApi: action.googleApi });
   case StoreActionType.SET_IS_LOADED:
     return Object.assign({}, state, { isLoaded: action.isLoaded });
   case StoreActionType.SET_FILENAME:

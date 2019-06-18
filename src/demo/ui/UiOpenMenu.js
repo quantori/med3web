@@ -536,8 +536,11 @@ class UiOpenMenu extends React.Component {
     this.setState({ showModalGoogle: false });
   }
   onGoogleSelected(index) {
-    // TODO: perform action on click i-th item in Google cloud menu
+    const store = this.props;
     console.log(`TODO: onGoogleSelected(${index}) ... `);
+    //store.App.loadGoogleDicom();
+    console.log(JSON.stringify(store.googleApi, null, 2));
+    // TODO: perform action on click i-th item in Google cloud menu
   }
   onDemoSelected(index) {
     let fileName = '';

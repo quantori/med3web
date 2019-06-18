@@ -32,5 +32,6 @@ const StoreActionType = {
   SET_SLIDER_Contrast3D: 27,
   SET_ERR_ARRAY: 28,
   SET_MODE_3Droi: 29,
+  SET_GOOGLE_API: 30,
 };
 export default StoreActionType;

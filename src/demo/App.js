@@ -11,6 +11,7 @@
 
 import React from 'react';
 import { connect } from 'react-redux';
+import StoreActionType from './store/ActionTypes';
 import UiApp from './ui/UiApp';
 import LoaderUrlDicom from './engine/loaders/LoaderUrlDicom'
 import './App.css'
@@ -148,16 +149,12 @@ class App extends React.Component {
         console.error(err);
       });
   }
-  onApi(api) {
-    this.logObject('onApi with api = ', api);
-    // Authorize via google account
-    if (api.client !== null && api.signedIn === false) {
-      this.authorize().then( () => {      
-        console.log('Authorized');
-      });
-    }
-    // When next render comes, if both client and api ready - get dicoms from cloud
-    if (api.client !== null && api.signedIn) {
+  setGoogleApiToStore(client) {
+    const store = this.props;
+    store.dispatch({ type: StoreActionType.SET_GOOGLE_API, googleApi: client });
+  }
+  loadGoogleDicom() {
+    if (this.api.client !== null && this.api.signedIn) {
       console.log('Requesting instances..');
       this.listInstancesInSeries(this.api.client, this.api.googleAuth, (urlArray) => {
         //this.props.urlArray = urlArray;
@@ -167,6 +164,27 @@ class App extends React.Component {
         loader.loadFromUrlArray(urlArray, READ_FROM_GOOGLE);
       });
     }
+  }
+  onApi(api) {
+    this.logObject('onApi with api = ', api);
+    // Authorize via google account
+    this.setGoogleApiToStore(this.api.client);
+    if (api.client !== null && api.signedIn === false) {
+      this.authorize().then( () => {      
+        console.log('Authorized');        
+      });
+    }
+    // When next render comes, if both client and api ready - get dicoms from cloud
+    // if (api.client !== null && api.signedIn) {
+    //   console.log('Requesting instances..');
+    //   this.listInstancesInSeries(this.api.client, this.api.googleAuth, (urlArray) => {
+    //     //this.props.urlArray = urlArray;
+    //     const store = this.props;
+    //     const loader = new LoaderUrlDicom(store);
+    //     const READ_FROM_GOOGLE = true;
+    //     loader.loadFromUrlArray(urlArray, READ_FROM_GOOGLE);
+    //   });
+    // }
     // output html component
     // <div class="g-signin2" data-onsuccess="onSignIn"></div>
     const jsxOnApi = <p>

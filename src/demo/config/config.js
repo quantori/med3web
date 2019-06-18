@@ -1,17 +1,17 @@
 export default {
-  googleCloudDemoActivce: false,
+  googleCloudDemoActivce: true,
   arrMenuGoogle: [
     {
-      text: 'Demo lungs AA',
-      tooltip: 'Load some lungs model',
+      text: 'Demo lungs #1',
+      tooltip: 'Google Healthcare Lung Dataset',
     },
     {
-      text: 'Demo head BB',
-      tooltip: 'Load some strange head',
+      text: 'Demo lungs #2',
+      tooltip: 'Google Healthcare Lung Dataset',
     },
     {
-      text: 'Demo alien CC',
-      tooltip: 'Write here smth please',
+      text: 'Demo abdomen',
+      tooltip: 'Google Healthcare Abdomen Dataset',
     },
   ],
   demoWomanPelvisPrefix : '',
