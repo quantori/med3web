@@ -18,6 +18,7 @@ import Volume from '../engine/Volume';
 import Texture3D from '../engine/Texture3D';
 
 import UiModalDemo from './UiModalDemo';
+import UiModalGoogle from './UiModalGoogle';
 import StoreActionType from '../store/ActionTypes';
 import ModeView from '../store/ModeView';
 import Modes3d from '../store/Modes3d';
@@ -38,9 +39,6 @@ import config from '../config/config';
 
 /** deep artificially fix volume texture size to 4 * N */
 const NEED_TEXTURE_SIZE_4X = true;
-
-/** special demo development mode to read data from google cloud */
-const GOOGLE_CARE_DEMO = false;
 
 // ********************************************************
 // Class
@@ -70,8 +68,11 @@ class UiOpenMenu extends React.Component {
 
     this.onModalDemoOpenShow = this.onModalDemoOpenShow.bind(this);
     this.onModalDemoOpenHide = this.onModalDemoOpenHide.bind(this);
-
     this.onDemoSelected = this.onDemoSelected.bind(this);
+
+    this.onModalGoogleShow = this.onModalGoogleShow.bind(this);
+    this.onModalGoogleHide = this.onModalGoogleHide.bind(this);
+    this.onGoogleSelected = this.onGoogleSelected.bind(this);
 
     this.callbackReadProgress = this.callbackReadProgress.bind(this);
     this.callbackReadComplete = this.callbackReadComplete.bind(this);
@@ -84,6 +85,7 @@ class UiOpenMenu extends React.Component {
       strUrl: '',
       showModalUrl: false,
       showModalDemo: false,
+      showModalGoogle: false,
     };
     this.m_volume = null;
     this.m_volumeRoi = null;
@@ -527,31 +529,24 @@ class UiOpenMenu extends React.Component {
     }
     return str;
   }
+  onModalGoogleShow() {
+    this.setState({ showModalGoogle: true });
+  }
+  onModalGoogleHide() {
+    this.setState({ showModalGoogle: false });
+  }
+  onGoogleSelected(index) {
+    // TODO: perform action on click i-th item in Google cloud menu
+    console.log(`TODO: onGoogleSelected(${index}) ... `);
+  }
   onDemoSelected(index) {
     let fileName = '';
     if (index === 0) {
-
-      if (!GOOGLE_CARE_DEMO) {
-        // 20101108.ktx
-        const FN_ENCODED = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/luy/31212219.luy';
-        const ft = new FileTools();
-        fileName = ft.decodeUrl(FN_ENCODED);
-        // console.log(`onDemoSelected. enc = ${fileName}`);
-      } else {
-
-        const ref0 = 'https://healthcare.googleapis.com/v1beta1/projects/wide-journey-237913/locations/europe-west2/datasets/TestDicom1/dicomStores/';
-        const ref1 = 'TestDicomStorage2/dicomWeb/studies/';
-        const ref2 = '1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4/series/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.5/instances/';
-        const ref3 = '1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.10?access_token=ya29.'
-        const ref4 = 'Gl0qB9Yz8v2HFYXd7RC10eZNsPSDYkTqgItGtzAmIVRiBFvglXvebXDdsu1Vq1xLZ1hiKtyBL_-X9dm2V_RDC64PaylSckUryfVnJVRV7CW29-rzzDS03c-GWsl1Fvg';
-        const refTotal = ref0 + ref1 + ref2 + ref3 + ref4;
-        const arr = [];
-        arr.push(refTotal);
-        const store = this.props;
-        const loader = new LoaderUrlDicom(store);
-        const READ_FROM_GOOGLE = true;
-        loader.loadFromUrlArray(arr, READ_FROM_GOOGLE);
-      }
+      // 20101108.ktx
+      const FN_ENCODED = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/luy/31212219.luy';
+      const ft = new FileTools();
+      fileName = ft.decodeUrl(FN_ENCODED);
+      // console.log(`onDemoSelected. enc = ${fileName}`);
     } else if (index === 1) {
       // set00.ktx
       const FN_ENCO = 'http://www.e-joufs.sv/qsjwbuf/nfe4xfc/ebub/luy/tfu11.luy';
@@ -642,6 +637,16 @@ class UiOpenMenu extends React.Component {
     return true;
   }
   render() {
+    const isGoogle = config.googleCloudDemoActivce;
+
+    const jsGoo = (isGoogle) ? 
+      <NavDropdown.Item onClick={this.onModalGoogleShow} >
+        <i className="fas fa-brain"></i>
+        Google cloud models
+      </NavDropdown.Item> : 
+      <p></p>;
+
+
     const jsxOpenMenu =
       <NavDropdown id="basic-nav-dropdown" title={
         <div style={{ display: 'inline-block' }}> 
@@ -659,6 +664,8 @@ class UiOpenMenu extends React.Component {
         </NavDropdown.Item>
 
         <NavDropdown.Divider />
+
+        {jsGoo}
 
         <NavDropdown.Item href="#actionOpenDemo" onClick={this.onModalDemoOpenShow} >
           <i className="fas fa-brain"></i>
@@ -697,6 +704,10 @@ class UiOpenMenu extends React.Component {
 
         <UiModalDemo stateVis={this.state.showModalDemo}
           onHide={this.onModalDemoOpenHide} onSelectDemo={this.onDemoSelected}  />
+        <UiModalGoogle stateVis={this.state.showModalGoogle}
+          onHide={this.onModalGoogleHide} onSelectDemo={this.onGoogleSelected}  
+          arrMenu={config.arrMenuGoogle}/>
+
       </NavDropdown>
 
     return jsxOpenMenu;
