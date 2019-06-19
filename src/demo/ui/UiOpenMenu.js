@@ -535,11 +535,61 @@ class UiOpenMenu extends React.Component {
   onModalGoogleHide() {
     this.setState({ showModalGoogle: false });
   }
+  toDicomWebQIDOUrl(path, googleAuth) {
+    return path + '?access_token=' +
+      googleAuth.currentUser.get().getAuthResponse(true).access_token;
+  }
+  listInstancesInSeries(client, googleAuth, onUrlCaptured) {
+    const projectId = 'wide-journey-237913';
+    const cloudRegion = 'europe-west2';
+    const dicomDataset = 'TestDicom1';
+    const dicomStore = 'TestDicomStorage2';
+    const PrefixURL = 'https://healthcare.googleapis.com/v1beta1/';
+    const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
+    const dicomWebPath = 'studies';
+    const studyName = `${dicomWebPath}/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4`;
+    const seriesName = `${studyName}/series/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.5/instances`;
+
+    const SOP_INSTANCE_UID_TAG = '00080018';
+    const request = { 
+      parent: parentName,
+      dicomWebPath: seriesName 
+    };
+    let urlArray = []
+    //client.healthcare.projects.locations.datasets.dicomStores.studies.retrieveStudy(request)
+    client.healthcare.projects.locations.datasets.dicomStores.studies.series.retrieveSeries(request)      
+      .then(instances => {
+        for (let i = 0; i < instances.result.length; i++) {
+          const dcmPath = `${PrefixURL}${parentName}/dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}`;
+          //console.log(`${this.toDicomWebQIDOUrl(dcmPath, googleAuth)}\n`)
+          urlArray.push(this.toDicomWebQIDOUrl(dcmPath, googleAuth));
+          //console.log(`${dcmPath}\n`)
+        }
+        onUrlCaptured(urlArray);
+      })
+      .catch(err => {
+        console.error(err);
+      });    
+  }
+  loadGoogleDicom(client, googleAuth) {
+    if (client !== null) {
+      console.log('Requesting instances..');
+      this.listInstancesInSeries(client, googleAuth, (urlArray) => {
+        //this.props.urlArray = urlArray;
+        const store = this.props;
+        const loader = new LoaderUrlDicom(store);
+        const READ_FROM_GOOGLE = true;
+        loader.loadFromUrlArray(urlArray, READ_FROM_GOOGLE);
+      });
+    }
+  }
   onGoogleSelected(index) {
     const store = this.props;
     console.log(`TODO: onGoogleSelected(${index}) ... `);
     //store.App.loadGoogleDicom();
-    console.log(JSON.stringify(store.googleApi, null, 2));
+    //console.log(JSON.stringify(store.googleApi.client, null, 2));
+    //console.log(JSON.stringify(store.googleApi.auth, null, 2));
+    this.loadGoogleDicom(store.googleApi.client, store.googleApi.auth);
     // TODO: perform action on click i-th item in Google cloud menu
   }
   onDemoSelected(index) {

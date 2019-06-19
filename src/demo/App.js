@@ -168,7 +168,7 @@ class App extends React.Component {
   onApi(api) {
     this.logObject('onApi with api = ', api);
     // Authorize via google account
-    this.setGoogleApiToStore(this.api.client);
+    this.setGoogleApiToStore({ client: this.api.client, auth: this.api.googleAuth });
     if (api.client !== null && api.signedIn === false) {
       this.authorize().then( () => {      
         console.log('Authorized');        
