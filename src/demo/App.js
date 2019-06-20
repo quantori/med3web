@@ -120,7 +120,7 @@ class App extends React.Component {
         console.error(err);
       });    
   }
-  listSeries(client) {
+  listSeries(client, onStudyIDCaptured) {
     // const cloudRegion = 'us-central1';
     // const projectId = 'adjective-noun-123';
     const projectId = 'wide-journey-237913';
@@ -130,20 +130,27 @@ class App extends React.Component {
     // const parentName = `projects/${projectId}/locations/${cloudRegion}`;
     // For future dicomStores request
     const parentName = `projects/${projectId}/locations/${cloudRegion}/datasets/${dicomDataset}/dicomStores/${dicomStore}`;
-    const studyName = `studies/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4/series`;
+    //const studyName = `studies/1.3.6.1.4.1.25403.158515237678667.5060.20130807021436.4/series`;
+    const studyIdTag = '0020000D';
     
-  
+    let studyIdArray = []
     const request = { 
       parent: parentName,
-      dicomWebPath: studyName 
+      dicomWebPath: 'studies' 
     };
     client.healthcare.projects.locations.datasets.dicomStores
-      .searchForSeries(request)
+      .searchForStudies(request)
       //searchForStudies(request)      
-      .then(results => {
-        console.log('Request successful:\n');
+      .then(studies => {
+        //console.log('Request successful:\n');
         //this.logObject('Datasets = ', results);
-        console.log(JSON.stringify(results, null, 2));
+        //console.log(JSON.stringify(studies, null, 2));
+        for (let i = 0; i < studies.result.length; i++) {
+          //const dcmPath = `${PrefixURL}${parentName}/dicomWeb/${seriesName}/${instances.result[i][SOP_INSTANCE_UID_TAG].Value}`;
+          //console.log(`${this.toDicomWebQIDOUrl(dcmPath, googleAuth)}\n`)
+          studyIdArray.push(studies.result[i][studyIdTag].Value);
+        }
+        onStudyIDCaptured(studyIdArray);
       })
       .catch(err => {
         console.error(err);
@@ -175,9 +182,13 @@ class App extends React.Component {
       });
     }
     // When next render comes, if both client and api ready - get dicoms from cloud
-    // if (api.client !== null && api.signedIn) {
-    //   console.log('Requesting instances..');
-    //   this.listInstancesInSeries(this.api.client, this.api.googleAuth, (urlArray) => {
+    /*if (api.client !== null && api.signedIn) {
+      console.log('Requesting instances..');
+      this.listSeries(this.api.client, (studyIdList) => {
+        console.log(JSON.stringify(studyIdList, null, 2));
+      });
+    }*/
+    //this.listInstancesInSeries(this.api.client, this.api.googleAuth, (urlArray) => {
     //     //this.props.urlArray = urlArray;
     //     const store = this.props;
     //     const loader = new LoaderUrlDicom(store);
