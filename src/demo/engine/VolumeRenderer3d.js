@@ -1327,7 +1327,7 @@ export default class VolumeRenderer3d {
   }
   onMouseDown(xx, yy) {
     if (this.Tool23D) {
-      this.graphics23d.setScreen2World(this.getScreen2WorldTransform, this.voxel2mm);
+      this.graphics23d.setScreen2World(this.getScreen2WorldTransform(), this.voxel2mm);
       this.graphics23d.onMouseDown(xx / this.windowWidth, yy / this.windowHeight);
       return;
     }
@@ -1346,7 +1346,7 @@ export default class VolumeRenderer3d {
   onMouseMove(xx, yy) {
     //this.tools23d.onMouseMove(xx / this.windowWidth, yy / this.windowHeight);
     if (this.Tool23D) {
-      this.graphics23d.setScreen2World(this.getScreen2WorldTransform, this.voxel2mm);
+      this.graphics23d.setScreen2World(this.getScreen2WorldTransform(), this.voxel2mm);
       this.graphics23d.onMouseMove(xx / this.windowWidth, yy / this.windowHeight);
       return;
     }

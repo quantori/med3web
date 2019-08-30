@@ -25,6 +25,7 @@ under the License.
 import MeshText2D from './meshtext2d';
 import MaterialColor2d from '../gfx/matcolor2d';
 import Line2D from './line2d';
+import * as THREE from 'three';
 
 export default class DistanceTool {
 
@@ -114,13 +115,11 @@ export default class DistanceTool {
     this.m_zoom = zoom;
   }
   /**
-   * Set pixel size in mm
-   * @param (float) xPixelSize - canvas pixel size in mm for x axis
-   * @param (float) yPixelSize - canvas pixel size in mm for y axis
+   * Set voxel size in mm
+   * @param (float) voxel2mm - canvas voxel size in mm 
    */
-  setPixelSize(xPixelSize, yPixelSize) { // in mm
-    this.m_xPixelSize = xPixelSize;
-    this.m_yPixelSize = yPixelSize;
+  setVoxelSize(voxel2mm) { // in mm
+    this.voxel2mm = voxel2mm;
   }
   /**
    * Return running state
@@ -162,7 +161,14 @@ export default class DistanceTool {
   setScreen2World(screen2World) {
     this.m_screen2World = screen2World;
   }
-  getLineLengthInMM() {
+  getLineLengthInMM(x, y) {
+    const startPtScreen = new THREE.Vector3(this.m_xStart, this.m_yStart, 0.0);
+    const endPtScreen = new THREE.Vector3(x, y, 0.0);
+    startPtScreen.applyMatrix4(this.m_screen2World);
+    startPtScreen.multiply(this.voxel2mm);
+    endPtScreen.applyMatrix4(this.m_screen2World);
+    endPtScreen.multiply(this.voxel2mm);
+    return startPtScreen.distanceTo(endPtScreen);
     /*(zoom * (Math.sqrt((x - this.m_xStart) * (x - this.m_xStart)
       * this.m_xPixelSize * this.m_xPixelSize +
       // eslint-disable-next-line
@@ -180,10 +186,11 @@ export default class DistanceTool {
       this.m_scene.remove(dist.line.getRenderObject());
       const line = new Line2D(this.m_scene, this.m_lineWidth, this.m_xStart, this.m_yStart, x, y, this.m_linesMaterial);
       this.m_scene.remove(dist.text);
-      const strMsg = `${(zoom * (Math.sqrt((x - this.m_xStart) * (x - this.m_xStart)
+      /*const strMsg = `${(zoom * (Math.sqrt((x - this.m_xStart) * (x - this.m_xStart)
         * this.m_xPixelSize * this.m_xPixelSize +
         // eslint-disable-next-line
-        (y - this.m_yStart) * (y - this.m_yStart) * this.m_yPixelSize * this.m_yPixelSize))).toFixed(2)} mm`;
+        (y - this.m_yStart) * (y - this.m_yStart) * this.m_yPixelSize * this.m_yPixelSize))).toFixed(2)} mm`;*/
+      const strMsg = `${this.getLineLengthInMM(x, y)} mm`;
       const text = new MeshText2D(strMsg);
       text.updateText(0.5 * (x + this.m_xStart) - 0.00, 0.5 * (y + this.m_yStart) - 0.00, this.m_textWidthScr,
         MeshText2D.ALIGN_CENTER, MeshText2D.ALIGN_CENTER, this.m_textBgColor, this.m_textColor);
