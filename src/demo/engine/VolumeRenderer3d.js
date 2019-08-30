@@ -775,7 +775,7 @@ export default class VolumeRenderer3d {
     this.vBoxVirt.x = box.x / sideMax;
     this.vBoxVirt.y = box.y / sideMax;
     this.vBoxVirt.z = box.z / sideMax;
-    this.voxel2mm = THREE.Vector3(box.x / volume.m_xDim, box.y / volume.m_yDim, box.z / volume.m_zDim);
+    this.voxel2mm = new THREE.Vector3(box.x / volume.m_xDim, box.y / volume.m_yDim, box.z / volume.m_zDim);
     this.isoThreshold = this.curFileDataType.thresholdIsosurf;    
     this.volume = volume;
     this.nonEmptyBoxMin = nonEmptyBoxMin;
