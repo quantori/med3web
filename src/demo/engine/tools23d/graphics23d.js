@@ -100,6 +100,7 @@ export default class Graphics23d {
 
     this.m_textTime = -1000;
     this.m_text = null;
+    this.m_screen2World = null;
     this.m_toolType = tools2d.DISTANCE;
     //this.m_toolType = tools2d.INTENSITY;
     this.m_distanceTool = new DistanceTool(this.m_scene, this.m_lineWidth);
@@ -116,6 +117,9 @@ export default class Graphics23d {
   } // end of constructor
   set2dToolType(toolType) {
     this.m_toolType = toolType;
+  }
+  setScreen2World(screen2World) {
+    this.m_screen2World = screen2World;
   }
   /**
    * Callback on file loaded
@@ -194,6 +198,7 @@ export default class Graphics23d {
 
     switch (this.m_toolType) {
     case tools2d.DISTANCE:
+      this.m_distanceTool.setScreen2World(this.m_screen2World);
       this.m_distanceTool.onMouseDown(xt, yt, this.m_zoom, this.m_posX * (this.m_wProjScreen),
         this.m_posY * (this.m_hProjScreen));
       break;

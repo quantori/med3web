@@ -34,6 +34,8 @@ export default class DistanceTool {
    * @param (object) lineWidth - width of all lines
    */
   constructor(scene, lineWidth) {
+    /** @property {Object} m_screen2World - matrix that stores transformation from screen to image coords */
+    this.m_screen2World = null;
     /** @property {Object} m_scene - scene object */
     this.m_scene = scene;
     /** @property {float} m_lineWidth - width for all lines */
@@ -156,6 +158,16 @@ export default class DistanceTool {
   }
   test() {
     new Line2D(this.m_scene, this.m_lineWidth, -1.0, 1.0, -0.5, 0.5, this.m_linesMaterial);
+  }
+  setScreen2World(screen2World) {
+    this.m_screen2World = screen2World;
+  }
+  getLineLengthInMM() {
+    /*(zoom * (Math.sqrt((x - this.m_xStart) * (x - this.m_xStart)
+      * this.m_xPixelSize * this.m_xPixelSize +
+      // eslint-disable-next-line
+      (y - this.m_yStart) * (y - this.m_yStart) * this.m_yPixelSize * this.m_yPixelSize)))
+  */
   }
   /**
    * Mouse move events handler
