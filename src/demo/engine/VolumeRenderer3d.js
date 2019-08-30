@@ -97,6 +97,7 @@ export default class VolumeRenderer3d {
     this.renderCounter = 0;
     this.scene = new THREE.Scene();
     this.sceneClipPlane = new THREE.Scene();
+    this.voxel2mm = null;
 
     // tetra scene seems to be unused!
     // this.sceneTetra = new THREE.Scene();
@@ -774,6 +775,7 @@ export default class VolumeRenderer3d {
     this.vBoxVirt.x = box.x / sideMax;
     this.vBoxVirt.y = box.y / sideMax;
     this.vBoxVirt.z = box.z / sideMax;
+    this.voxel2mm = THREE.Vector3(box.x / volume.m_xDim, box.y / volume.m_yDim, box.z / volume.m_zDim);
     this.isoThreshold = this.curFileDataType.thresholdIsosurf;    
     this.volume = volume;
     this.nonEmptyBoxMin = nonEmptyBoxMin;
@@ -1325,7 +1327,7 @@ export default class VolumeRenderer3d {
   }
   onMouseDown(xx, yy) {
     if (this.Tool23D) {
-      this.graphics23d.setScreen2World(this.getScreen2WorldTransform);
+      this.graphics23d.setScreen2World(this.getScreen2WorldTransform, this.voxel2mm);
       this.graphics23d.onMouseDown(xx / this.windowWidth, yy / this.windowHeight);
       return;
     }
@@ -1344,7 +1346,7 @@ export default class VolumeRenderer3d {
   onMouseMove(xx, yy) {
     //this.tools23d.onMouseMove(xx / this.windowWidth, yy / this.windowHeight);
     if (this.Tool23D) {
-      this.graphics23d.setScreen2World(this.getScreen2WorldTransform);
+      this.graphics23d.setScreen2World(this.getScreen2WorldTransform, this.voxel2mm);
       this.graphics23d.onMouseMove(xx / this.windowWidth, yy / this.windowHeight);
       return;
     }
