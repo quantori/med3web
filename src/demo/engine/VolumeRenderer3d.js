@@ -1103,7 +1103,8 @@ export default class VolumeRenderer3d {
    */
   updateSelectedRoiMap(selectedROIs) {
     this.volumeUpdater.updateSelectedRoiMap(selectedROIs);
-  }  /**
+  }
+  /**
    * Rotate Cut Plane (Rotation is inverse to the object)
    */
   updateCutPlanes() {
@@ -1140,6 +1141,36 @@ export default class VolumeRenderer3d {
       this.matFF.uniforms.PlaneZ.value.z = zAxis.z;
       this.matFF.uniforms.PlaneZ.value.w = -centerPt.dot(zAxis);
     }
+  }
+  /**
+   * Rotate Cut Plane (Rotation is inverse to the object)
+   */
+  getNearPlaneToCutPlaneDist() {
+    if (!this.mesh) {
+      return;
+    }
+    const mtx = new THREE.Matrix4();
+    if (this.renderScene === SCENE_TYPE_SPHERE) {
+      mtx.getInverse(mtx.extractRotation(this.meshSphere.matrix));
+    } else {
+      mtx.getInverse(mtx.extractRotation(this.mesh.matrix));
+    }
+    const zAxis = new THREE.Vector3(0.0, 0.0, -1.0);
+    const centerPt = new THREE.Vector3().copy(this.planeCenterPt);
+    centerPt.applyMatrix4(mtx);
+    zAxis.applyMatrix4(mtx);
+    const PlaneZ = new THREE.Vector4();
+    PlaneZ.x = -zAxis.x;
+    PlaneZ.y = zAxis.y;
+    PlaneZ.z = zAxis.z;
+    PlaneZ.w = -centerPt.dot(zAxis);
+    const ImageSpaceCameraPos = new THREE.Vector3.copy(this.camera.position);
+    ImageSpaceCameraPos.x = -ImageSpaceCameraPos.x;
+    const nearPlaneDist = 0.01;
+    const cutPlaneDist = PlaneZ.x * ImageSpaceCameraPos.x +
+      PlaneZ.y * ImageSpaceCameraPos.y +
+      PlaneZ.z * ImageSpaceCameraPos.z +
+      PlaneZ.w;
   }
   /**
    * Rotate light direction (Rotation is inverse to the object)
