@@ -1163,7 +1163,7 @@ export default class VolumeRenderer3d {
     PlaneZ.y = zAxis.y;
     PlaneZ.z = zAxis.z;
     PlaneZ.w = -centerPt.dot(zAxis);
-    const ImageSpaceCameraPos = new THREE.Vector3.copy(this.camera.position);
+    const ImageSpaceCameraPos = new THREE.Vector3().copy(this.camera.position);
     ImageSpaceCameraPos.x = -ImageSpaceCameraPos.x;
     // const nearPlaneDist = 0.01;
     const cutPlaneDist = PlaneZ.x * ImageSpaceCameraPos.x +
