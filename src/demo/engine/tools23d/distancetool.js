@@ -37,6 +37,8 @@ export default class DistanceTool {
   constructor(scene, lineWidth) {
     /** @property {Object} m_screen2World - matrix that stores transformation from screen to image coords */
     this.m_screen2World = null;
+    this.nearPlaneDist = 0;
+    this.cutPlaneDist = 0;
     /** @property {Object} m_scene - scene object */
     this.m_scene = scene;
     /** @property {float} m_lineWidth - width for all lines */
@@ -121,6 +123,10 @@ export default class DistanceTool {
   setVoxelSize(voxel2mm) { // in mm
     this.voxel2mm = voxel2mm;
   }
+  setPlaneDists(nearPlaneDist, cutPlaneDist) {
+    this.nearPlaneDist = nearPlaneDist;
+    this.cutPlaneDist = cutPlaneDist;
+  }
   /**
    * Return running state
    * @return {boolean} True if last line has not been fixed yet
@@ -162,13 +168,13 @@ export default class DistanceTool {
     this.m_screen2World = screen2World;
   }
   getLineLengthInMM(x, y) {
-    const startPtScreen = new THREE.Vector3(this.m_xStart, this.m_yStart, 0.0);
-    const endPtScreen = new THREE.Vector3(x, y, 0.0);
+    const startPtScreen = new THREE.Vector3(this.m_xStart, this.m_yStart, 0.01);
+    const endPtScreen = new THREE.Vector3(x, y, 0.01);
     startPtScreen.applyMatrix4(this.m_screen2World);
     startPtScreen.multiply(this.voxel2mm);
     endPtScreen.applyMatrix4(this.m_screen2World);
     endPtScreen.multiply(this.voxel2mm);
-    return startPtScreen.distanceTo(endPtScreen);
+    return startPtScreen.distanceTo(endPtScreen) * this.cutPlaneDist / this.nearPlaneDist;
     /*(zoom * (Math.sqrt((x - this.m_xStart) * (x - this.m_xStart)
       * this.m_xPixelSize * this.m_xPixelSize +
       // eslint-disable-next-line

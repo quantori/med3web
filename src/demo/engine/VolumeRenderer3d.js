@@ -752,15 +752,13 @@ export default class VolumeRenderer3d {
     this.planeGeometry.getAttribute('uvw').needsUpdate = true;
   }
   getScreen2WorldTransform() {
-    const l2w = new THREE.Matrix4();
-    l2w.getInverse(this.mesh.matrix);
-    const s2w = new THREE.Matrix4();
-    s2w.getInverse(this.camera.projectionMatrix);
-    const invView = new THREE.Matrix4();
-    invView.copy(this.camera.matrixWorld);
-    s2w.multiply(invView);
-    s2w.multiply(l2w);
-    return s2w;
+    const mtx = new THREE.Matrix4();
+    if (this.renderScene === SCENE_TYPE_SPHERE) {
+      mtx.getInverse(mtx.extractRotation(this.meshSphere.matrix));
+    } else {
+      mtx.getInverse(mtx.extractRotation(this.mesh.matrix));
+    }
+    return mtx;
   }
   /**
    * Create geometry and materials for 3D rendering
@@ -1145,16 +1143,17 @@ export default class VolumeRenderer3d {
   /**
    * Rotate Cut Plane (Rotation is inverse to the object)
    */
-  getNearPlaneToCutPlaneDist() {
+  getCameraCutPlaneDist() {
     if (!this.mesh) {
       return;
     }
-    const mtx = new THREE.Matrix4();
+    /*const mtx = new THREE.Matrix4();
     if (this.renderScene === SCENE_TYPE_SPHERE) {
       mtx.getInverse(mtx.extractRotation(this.meshSphere.matrix));
     } else {
       mtx.getInverse(mtx.extractRotation(this.mesh.matrix));
-    }
+    }*/
+    const mtx = this.getScreen2WorldTransform();
     const zAxis = new THREE.Vector3(0.0, 0.0, -1.0);
     const centerPt = new THREE.Vector3().copy(this.planeCenterPt);
     centerPt.applyMatrix4(mtx);
@@ -1166,11 +1165,12 @@ export default class VolumeRenderer3d {
     PlaneZ.w = -centerPt.dot(zAxis);
     const ImageSpaceCameraPos = new THREE.Vector3.copy(this.camera.position);
     ImageSpaceCameraPos.x = -ImageSpaceCameraPos.x;
-    const nearPlaneDist = 0.01;
+    // const nearPlaneDist = 0.01;
     const cutPlaneDist = PlaneZ.x * ImageSpaceCameraPos.x +
       PlaneZ.y * ImageSpaceCameraPos.y +
       PlaneZ.z * ImageSpaceCameraPos.z +
       PlaneZ.w;
+    return cutPlaneDist;
   }
   /**
    * Rotate light direction (Rotation is inverse to the object)
@@ -1358,7 +1358,9 @@ export default class VolumeRenderer3d {
   }
   onMouseDown(xx, yy) {
     if (this.Tool23D) {
-      this.graphics23d.setScreen2World(this.getScreen2WorldTransform(), this.voxel2mm);
+      this.graphics23d.setScreen2World(this.getScreen2WorldTransform(),
+        this.voxel2mm,
+        this.getCameraCutPlaneDist());
       this.graphics23d.onMouseDown(xx / this.windowWidth, yy / this.windowHeight);
       return;
     }
@@ -1377,7 +1379,9 @@ export default class VolumeRenderer3d {
   onMouseMove(xx, yy) {
     //this.tools23d.onMouseMove(xx / this.windowWidth, yy / this.windowHeight);
     if (this.Tool23D) {
-      this.graphics23d.setScreen2World(this.getScreen2WorldTransform(), this.voxel2mm);
+      this.graphics23d.setScreen2World(this.getScreen2WorldTransform(),
+        this.voxel2mm,
+        this.getCameraCutPlaneDist());
       this.graphics23d.onMouseMove(xx / this.windowWidth, yy / this.windowHeight);
       return;
     }

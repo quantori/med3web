@@ -76,6 +76,8 @@ export default class Graphics23d {
     console.log(`Graphics2d create size = ${width} * ${height}`);
     this.m_scene = scene;
     this.voxel2mm = null;
+    this.cutPlaneDist = 0;
+    this.nearPlaneDist = 0.01;
 
     this.m_materialsTex2d = null;
     this.m_material = null;
@@ -119,9 +121,10 @@ export default class Graphics23d {
   set2dToolType(toolType) {
     this.m_toolType = toolType;
   }
-  setScreen2World(screen2World, voxel2mm) {
+  setScreen2World(screen2World, voxel2mm, cutPlaneDist) {
     this.m_screen2World = screen2World;
     this.voxel2mm = voxel2mm;
+    this.cutPlaneDist = cutPlaneDist;
   }
   /**
    * Callback on file loaded
@@ -202,6 +205,7 @@ export default class Graphics23d {
     case tools2d.DISTANCE:
       this.m_distanceTool.setVoxelSize(this.voxel2mm);
       this.m_distanceTool.setScreen2World(this.m_screen2World);
+      this.m_distanceTool.setPlaneDists(this.nearPlaneDist, this.cutPlaneDist);// TODO: define
       this.m_distanceTool.onMouseDown(xt, yt, this.m_zoom, this.m_posX * (this.m_wProjScreen),
         this.m_posY * (this.m_hProjScreen));
       break;
