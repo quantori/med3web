@@ -11,9 +11,11 @@ class FileTools {
   isValidUrl(strUrl) {
     const regA = /^((ftp|http|https):\/\/)?(([\S]+)\.)?([\S]+)\.([A-z]{2,})(:\d{1,6})?\/[\S]+/;
     const regB = /(ftp|http|https):\/\/([\d]+)\.([\d]+)\.([\d]+)\.([\d]+)(:([\d]+))?\/([\S]+)/;
+    const regLocalhost = /(localhost)./
     const isValidA = strUrl.match(regA);
     const isValidB = strUrl.match(regB);
-    if ((isValidA === null) && (isValidB === null)) {
+    const isValidLocalhost = strUrl.match(regLocalhost);
+    if ((isValidA === null) && (isValidB === null) && (isValidLocalhost === null)) {
       return false;
     }
     return true;
